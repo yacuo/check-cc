@@ -612,8 +612,8 @@ export function Detector({ lang = "zh" }: Props) {
           </div>
           <div>
             <div className="flex items-center justify-between gap-4">
-              <h3 className="text-xl font-black text-[#0b1220]">命中的检测信号</h3>
-              <span className="rounded-full bg-[#fffaf3] px-3 py-1 text-xs font-bold text-stone-500">默认展示全部指标</span>
+              <h3 className="text-xl font-black text-[#0b1220]">{hasChecked ? `命中${signals.length + ipMetricCards.length}个检测信号，当前检测结果已完成` : "命中的检测信号"}</h3>
+              <span className="rounded-full bg-[#fffaf3] px-3 py-1 text-xs font-bold text-stone-500">共展示{signals.length + ipMetricCards.length}项</span>
             </div>
             <div className="mt-4"><SignalList signals={signals} extraCards={ipMetricCards} /></div>
           </div>
