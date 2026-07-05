@@ -51,12 +51,19 @@ export function SiteFrame({ children }: { children: ReactNode }) {
           </div>
         </nav>
       </aside>
+      {open && <button type="button" aria-label={copy.nav.close} className="fixed inset-0 z-[60] bg-transparent md:hidden" onClick={() => setOpen(false)} />}
 
-      <div className={open ? "translate-x-[35vw] transition-transform duration-300" : "transition-transform duration-300"}>
-        <header className="sticky top-0 z-50 border-b border-stone-200 bg-[#fffaf3]/88 backdrop-blur-xl">
+      <div className={`pt-[72px] transition-transform duration-300 ${open ? "translate-x-[35vw]" : "translate-x-0"}`}>
+        <header className="fixed left-0 top-0 z-50 w-full border-b border-stone-200 bg-[#fffaf3]/88 backdrop-blur-xl">
           <div className={`${pageMax} flex h-[72px] items-center justify-between`}>
             <div className="flex items-center gap-3">
-              <button type="button" onClick={() => setOpen(true)} className="rounded-full border border-stone-200 bg-white px-3 py-2 text-sm font-black md:hidden">{copy.nav.menu}</button>
+              <button type="button" onClick={() => setOpen(true)} aria-label={copy.nav.menu} className="grid size-11 place-items-center rounded-full border border-stone-200 bg-white text-[#0b1220] md:hidden">
+                <span className="flex flex-col gap-1.5">
+                  <span className="block h-0.5 w-5 rounded-full bg-current" />
+                  <span className="block h-0.5 w-5 rounded-full bg-current" />
+                  <span className="block h-0.5 w-5 rounded-full bg-current" />
+                </span>
+              </button>
               <Brand />
             </div>
             <nav className="hidden items-center gap-8 text-sm font-semibold text-stone-600 md:flex">

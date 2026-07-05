@@ -14,12 +14,64 @@ type BrowserIpIntel = { ip: string; location: string; country: string; asn: stri
 
 type TargetRegion = RegionCode | "hk";
 
-const regions: Array<{ code: TargetRegion; label: string }> = [
-  { code: "auto", label: "自动检测" },
-  { code: "cn", label: "中国大陆" },
-  { code: "hk", label: "香港" },
-  { code: "ru", label: "俄罗斯" },
-  { code: "ir", label: "伊朗" },
+type DetectorLocaleText = {
+  pending: string;
+  unknown: string;
+  signalLabels: Record<string, string>;
+  signalValues: Record<string, string>;
+  ipMetricLabels: Record<string, string>;
+  regions: Record<TargetRegion, string>;
+  status: Record<string, string>;
+  risk: { waiting: string; checking: string; supported: string; blocked: string; high: string; light: string };
+  valueMap: Record<string, string>;
+  confidence: { high: string; medium: string; low: string; safe: string; highRiskRegion: string; supportedRegion: string };
+};
+
+const detectorLocaleText: Record<LocaleCode, DetectorLocaleText> = {
+  zh: {
+    pending: "等待检测",
+    unknown: "未知",
+    signalLabels: { timezone: "系统时区", language: "浏览器语言", languageVariant: "语言文字特征", chineseFonts: "字体地区特征", vendorFonts: "厂商字体异常", domesticBrowser: "浏览器地区特征", domesticDevice: "设备地区特征", locale: "Intl 区域设置", timezoneOffset: "时区偏移", emojiStyle: "Emoji 渲染风格", country: "网络出口", proxyCountry: "代理出口国家", ipAddress: "IP 地址", os: "操作系统", browserIpLocation: "IP 位置", browserIpAsn: "ASN", browserIpOrg: "网络组织", browser: "浏览器/应用环境", device: "设备/系统线索", ipCountryRisk: "IP 风险国家", claudeAccessRisk: "Claude 访问风险" },
+    signalValues: { unknown: "未知", noBrands: "无 UA-CH brands", noLanguageVariant: "未命中重点语言文字", scFonts: "中国字体", tcFonts: "中文繁体字体", noFonts: "未命中重点地区字体", vendorFonts: "设备厂商字体", noVendorFonts: "未命中设备厂商字体", noDevice: "未命中重点设备特征", unknownBrowser: "未知浏览器", unknownSystem: "未知系统", appleEmoji: "Apple Emoji 风格", androidEmoji: "Android / 厂商 Emoji 风格", windowsEmoji: "Windows Emoji 风格", unknownEmoji: "未知 Emoji 风格", read: "已读取" },
+    ipMetricLabels: { ipAddress: "IP 地址", ipv6: "IPv6", ipv4: "IPv4", asn: "ASN", asnOwner: "ASN 所有者", company: "企业", longitude: "经度", latitude: "纬度", ipType: "IP 类型", risk: "风控值", isp: "ISP" },
+    regions: { auto: "自动检测", cn: "中国大陆", hk: "香港", ru: "俄罗斯", ir: "伊朗" },
+    status: { restricted: "高风险 / 可能受限", possibly_supported: "需要进一步确认", unsupported: "不支持", supported: "完美支持", unknown: "未确认" },
+    risk: { waiting: "等待检测", checking: "检测中", supported: "完美支持", blocked: "封号风险", high: "高危风险", light: "轻度风险" },
+    valueMap: { "中国大陆 IP": "中国大陆 IP", "访问和订阅风险极高": "访问和订阅风险极高" },
+    confidence: { high: "高度疑似", medium: "疑似", low: "少量命中", safe: "环境安全，疑似", highRiskRegion: "高风险地区", supportedRegion: "官方支持地区" },
+  },
+  "zh-HK": {
+    pending: "等待檢測",
+    unknown: "未知",
+    signalLabels: { timezone: "系統時區", language: "瀏覽器語言", languageVariant: "語言文字特徵", chineseFonts: "字體地區特徵", vendorFonts: "廠商字體異常", domesticBrowser: "瀏覽器地區特徵", domesticDevice: "設備地區特徵", locale: "Intl 區域設定", timezoneOffset: "時區偏移", emojiStyle: "Emoji 渲染風格", country: "網絡出口", proxyCountry: "代理出口國家", ipAddress: "IP 地址", os: "作業系統", browserIpLocation: "IP 位置", browserIpAsn: "ASN", browserIpOrg: "網絡組織", browser: "瀏覽器/應用環境", device: "設備/系統線索", ipCountryRisk: "IP 風險國家", claudeAccessRisk: "Claude 訪問風險" },
+    signalValues: { unknown: "未知", noBrands: "無 UA-CH brands", noLanguageVariant: "未命中重點語言文字", scFonts: "中國內地字體", tcFonts: "中文繁體字體", noFonts: "未命中重點地區字體", vendorFonts: "設備廠商字體", noVendorFonts: "未命中設備廠商字體", noDevice: "未命中重點設備特徵", unknownBrowser: "未知瀏覽器", unknownSystem: "未知系統", appleEmoji: "Apple Emoji 風格", androidEmoji: "Android / 廠商 Emoji 風格", windowsEmoji: "Windows Emoji 風格", unknownEmoji: "未知 Emoji 風格", read: "已讀取" },
+    ipMetricLabels: { ipAddress: "IP 地址", ipv6: "IPv6", ipv4: "IPv4", asn: "ASN", asnOwner: "ASN 擁有者", company: "企業", longitude: "經度", latitude: "緯度", ipType: "IP 類型", risk: "風控值", isp: "ISP" },
+    regions: { auto: "自動檢測", cn: "中國內地", hk: "香港", ru: "俄羅斯", ir: "伊朗" },
+    status: { restricted: "高風險 / 可能受限", possibly_supported: "需要進一步確認", unsupported: "不支援", supported: "完美支援", unknown: "未確認" },
+    risk: { waiting: "等待檢測", checking: "檢測中", supported: "完美支援", blocked: "封號風險", high: "高危風險", light: "輕度風險" },
+    valueMap: { "中国大陆 IP": "中國內地 IP", "访问和订阅风险极高": "訪問和訂閱風險極高" },
+    confidence: { high: "高度疑似", medium: "疑似", low: "少量命中", safe: "環境安全，疑似", highRiskRegion: "高風險地區", supportedRegion: "官方支援地區" },
+  },
+  ru: {
+    pending: "Ожидание проверки",
+    unknown: "Неизвестно",
+    signalLabels: { timezone: "Часовой пояс", language: "Язык браузера", languageVariant: "Языковые признаки", chineseFonts: "Региональные шрифты", vendorFonts: "Шрифты производителя", domesticBrowser: "Регион браузера", domesticDevice: "Регион устройства", locale: "Intl locale", timezoneOffset: "Смещение времени", emojiStyle: "Стиль Emoji", country: "Сетевой выход", proxyCountry: "Страна прокси", ipAddress: "IP-адрес", os: "ОС", browserIpLocation: "IP-локация", browserIpAsn: "ASN", browserIpOrg: "Сетевая организация", browser: "Браузер/приложение", device: "Устройство/система", ipCountryRisk: "Страна риска IP", claudeAccessRisk: "Риск доступа Claude" },
+    signalValues: { unknown: "Неизвестно", noBrands: "Нет UA-CH brands", noLanguageVariant: "Ключевые языковые признаки не найдены", scFonts: "Китайские шрифты", tcFonts: "Традиционные китайские шрифты", noFonts: "Ключевые региональные шрифты не найдены", vendorFonts: "Шрифты производителя", noVendorFonts: "Шрифты производителя не найдены", noDevice: "Ключевые признаки устройства не найдены", unknownBrowser: "Неизвестный браузер", unknownSystem: "Неизвестная система", appleEmoji: "Стиль Apple Emoji", androidEmoji: "Стиль Android / производителя", windowsEmoji: "Стиль Windows Emoji", unknownEmoji: "Неизвестный стиль Emoji", read: "Считано" },
+    ipMetricLabels: { ipAddress: "IP-адрес", ipv6: "IPv6", ipv4: "IPv4", asn: "ASN", asnOwner: "Владелец ASN", company: "Компания", longitude: "Долгота", latitude: "Широта", ipType: "Тип IP", risk: "Риск", isp: "ISP" },
+    regions: { auto: "Автоопределение", cn: "Китай", hk: "Гонконг", ru: "Россия", ir: "Иран" },
+    status: { restricted: "Высокий риск / возможно ограничено", possibly_supported: "Нужно уточнение", unsupported: "Не поддерживается", supported: "Полная поддержка", unknown: "Не подтверждено" },
+    risk: { waiting: "Ожидание", checking: "Проверка", supported: "Поддерживается", blocked: "Риск блокировки", high: "Высокий риск", light: "Низкий риск" },
+    valueMap: { "中国大陆 IP": "IP материкового Китая", "访问和订阅风险极高": "Очень высокий риск доступа и подписки" },
+    confidence: { high: "Высокая вероятность", medium: "Возможные признаки", low: "Небольшое совпадение", safe: "Среда выглядит безопасной:", highRiskRegion: "регион высокого риска", supportedRegion: "поддерживаемый регион" },
+  },
+};
+
+const regions: Array<{ code: TargetRegion }> = [
+  { code: "auto" },
+  { code: "cn" },
+  { code: "hk" },
+  { code: "ru" },
+  { code: "ir" },
 ];
 
 function normalizeRegion(code: TargetRegion): RegionCode {
@@ -52,14 +104,6 @@ const defaultSignals: SignalView[] = [
   { id: "os", label: "操作系统", value: "等待检测", score: 0, weight: 0, contribution: 0, source: "browser" },
 ];
 
-const statusText: Record<string, string> = {
-  restricted: "高风险 / 可能受限",
-  possibly_supported: "需要进一步确认",
-  unsupported: "不支持",
-  supported: "完美支持",
-  unknown: "未确认",
-};
-
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function animateProgress(from: number, to: number, setProgress: (value: number) => void, setActiveSignal: (value: number) => void) {
@@ -72,13 +116,13 @@ async function animateProgress(from: number, to: number, setProgress: (value: nu
   }
 }
 
-function makeSignal(id: string, label: string, value: string | null, weight: number, matched: boolean): SignalResult {
-  return makeSignalScore(id, label, value, weight, matched ? 1 : 0);
+function makeSignal(id: string, label: string, value: string | null, weight: number, matched: boolean, text: DetectorLocaleText): SignalResult {
+  return makeSignalScore(id, label, value, weight, matched ? 1 : 0, text);
 }
 
-function makeSignalScore(id: string, label: string, value: string | null, weight: number, score: number): SignalResult {
+function makeSignalScore(id: string, label: string, value: string | null, weight: number, score: number, text: DetectorLocaleText): SignalResult {
   const normalized = Math.max(0, Math.min(1, score));
-  return { id, label, value: value || "未知", score: normalized, weight, contribution: Math.round(normalized * weight), source: "browser" };
+  return { id, label, value: value || text.unknown, score: normalized, weight, contribution: Math.round(normalized * weight), source: "browser" };
 }
 
 function hasFont(font: string) {
@@ -99,7 +143,17 @@ function matchAny(value: string, patterns: string[]) {
   return patterns.find((pattern) => lower.includes(pattern.toLowerCase())) ?? null;
 }
 
-function detectBrowserName(ua: string) {
+function localizeSignalValue(value: string | null, text: DetectorLocaleText) {
+  if (!value) return value;
+  return text.valueMap[value] ?? value;
+}
+
+function localizeLocation(value: string, locale: LocaleCode) {
+  if (locale !== "ru") return value;
+  return value.replace(/日本/g, "Япония").replace(/东京都/g, "Токио").replace(/东京/g, "Токио").replace(/中国大陆/g, "материковый Китай").replace(/中国/g, "Китай");
+}
+
+function detectBrowserName(ua: string, text: DetectorLocaleText) {
   if (/Edg\//.test(ua)) return "Microsoft Edge";
   if (/OPR\//.test(ua)) return "Opera";
   if (/YaBrowser/i.test(ua)) return "Yandex Browser";
@@ -107,10 +161,10 @@ function detectBrowserName(ua: string) {
   if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) return "Safari";
   if (/Firefox\//.test(ua)) return "Firefox";
   if (/MicroMessenger/i.test(ua)) return "微信内置浏览器";
-  return "未知浏览器";
+  return text.signalValues.unknownBrowser;
 }
 
-function detectOS(ua: string, platform?: string) {
+function detectOS(ua: string, platform: string | undefined, text: DetectorLocaleText) {
   const probe = `${ua} ${platform ?? ""}`;
   if (/harmonyos/i.test(probe)) return "HarmonyOS";
   if (/android/i.test(probe)) return "Android";
@@ -118,7 +172,7 @@ function detectOS(ua: string, platform?: string) {
   if (/mac os|macintosh|macintel/i.test(probe)) return "macOS";
   if (/windows nt/i.test(probe)) return "Windows";
   if (/linux/i.test(probe)) return "Linux";
-  return platform || "未知系统";
+  return platform || text.signalValues.unknownSystem;
 }
 
 function loadBrowserPing0(): Promise<BrowserIpIntel | null> {
@@ -141,20 +195,20 @@ function loadBrowserPing0(): Promise<BrowserIpIntel | null> {
   });
 }
 
-function collectBrowserSignals(region: RegionCode) {
+function collectBrowserSignals(region: RegionCode, text: DetectorLocaleText) {
   const languages = navigator.languages?.length ? [...navigator.languages] : [navigator.language].filter(Boolean);
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || null;
   const locale = Intl.DateTimeFormat().resolvedOptions().locale || null;
   const ua = navigator.userAgent;
   const uaLower = ua.toLowerCase();
   const nav = navigator as Navigator & { userAgentData?: { platform?: string; brands?: Array<{ brand: string; version: string }>; mobile?: boolean } };
-  const brands = nav.userAgentData?.brands?.map((item) => item.brand).join(" / ") || "无 UA-CH brands";
+  const brands = nav.userAgentData?.brands?.map((item) => item.brand).join(" / ") || text.signalValues.noBrands;
   const scFonts = ["Microsoft YaHei", "Microsoft JhengHei", "PingFang SC", "Hiragino Sans GB", "STHeiti", "STSong", "SimSun", "SimHei", "Noto Sans CJK SC", "Source Han Sans SC", "WenQuanYi Micro Hei"].filter(hasFont);
   const tcFonts = ["PingFang TC", "Heiti TC", "Hiragino Sans CNS", "Noto Sans CJK TC", "Source Han Sans TC", "MingLiU", "PMingLiU"].filter(hasFont);
   const vendorFonts = ["MiSans", "HarmonyOS Sans", "OPPO Sans", "vivo Sans", "Honor Sans", "Alibaba PuHuiTi", "WPS Fangzheng", "FZLanTingHeiS"].filter(hasFont);
   const domesticBrowser = matchAny(`${uaLower} ${brands.toLowerCase()}`, ["micromessenger", "qqbrowser", "mqqbrowser", "quark", "ucbrowser", "ucweb", "baiduboxapp", "baidubrowser", "miuibrowser", "mibrowser", "huaweibrowser", "heytapbrowser", "oppobrowser", "vivobrowser", "360se", "360ee", "qihoobrowser", "sogoumobilebrowser", "2345browser", "lbbrowser"]);
   const domesticDevice = matchAny(`${uaLower} ${nav.userAgentData?.platform ?? ""}`, ["harmonyos", "huawei", "honor", "xiaomi", "redmi", "oppo", "vivo", "realme", "oneplus", "miui"]);
-  const chineseVariant = languages.some((lang) => /zh-(tw|hk|mo)|zh-hant/i.test(lang)) ? "中文繁体" : languages.some((lang) => /zh-cn|zh-sg|zh-hans|zh/i.test(lang)) ? "中文简体" : null;
+  const chineseVariant = languages.some((lang) => /zh-(tw|hk|mo)|zh-hant/i.test(lang)) ? (text === detectorLocaleText.ru ? "Традиционный китайский" : text === detectorLocaleText["zh-HK"] ? "中文繁體" : "中文繁体") : languages.some((lang) => /zh-cn|zh-sg|zh-hans|zh/i.test(lang)) ? (text === detectorLocaleText.ru ? "Упрощенный китайский" : text === detectorLocaleText["zh-HK"] ? "中文簡體" : "中文简体") : null;
   const offset = -new Date().getTimezoneOffset() / 60;
   const timezoneScore = ["Asia/Shanghai", "Asia/Urumqi", "Asia/Chongqing", "Asia/Harbin", "Asia/Kashgar"].includes(timezone ?? "") ? 1 : ["Asia/Hong_Kong", "Asia/Macau", "Asia/Taipei"].includes(timezone ?? "") ? 0.6 : 0;
   const languageScore = languages.some((lang) => /^zh-cn|zh-hans|^zh$/i.test(lang)) ? 1 : languages.some((lang) => /^zh/i.test(lang)) ? 0.5 : 0;
@@ -162,25 +216,27 @@ function collectBrowserSignals(region: RegionCode) {
   const fontScore = scFonts.length ? Math.min(1, 0.75 + 0.08 * scFonts.length) : tcFonts.length ? 0.5 : 0;
   const vendorFontScore = vendorFonts.length >= 2 ? 1 : vendorFonts.length === 1 ? 0.8 : 0;
   const deviceScore = domesticDevice === "harmonyos" ? 1 : domesticDevice ? 0.7 : 0;
-  const emojiStyle = /iphone|ipad|mac os/i.test(ua) ? "Apple Emoji 风格" : /android|harmonyos/i.test(ua) ? "Android / 厂商 Emoji 风格" : /windows/i.test(ua) ? "Windows Emoji 风格" : "未知 Emoji 风格";
-  const emojiScore = /Android|厂商|Windows/.test(emojiStyle) ? 0.4 : /Apple/.test(emojiStyle) ? 0.2 : 0;
+  const emojiStyle = /iphone|ipad|mac os/i.test(ua) ? text.signalValues.appleEmoji : /android|harmonyos/i.test(ua) ? text.signalValues.androidEmoji : /windows/i.test(ua) ? text.signalValues.windowsEmoji : text.signalValues.unknownEmoji;
+  const emojiScore = /Android|厂商|производителя|Windows/.test(emojiStyle) ? 0.4 : /Apple/.test(emojiStyle) ? 0.2 : 0;
+  const label = text.signalLabels;
+  const value = text.signalValues;
   const extraSignals: SignalResult[] = [
-    makeSignalScore("timezone", "系统时区", timezone, 26, timezoneScore),
-    makeSignalScore("language", "浏览器语言", languages.join(", "), 20, languageScore),
-    makeSignal("languageVariant", "语言文字特征", chineseVariant || "未命中重点语言文字", 12, Boolean(chineseVariant)),
-    makeSignalScore("chineseFonts", "字体地区特征", scFonts.length ? `中国字体：${scFonts.join(" / ")}` : tcFonts.length ? `中文繁体字体：${tcFonts.join(" / ")}` : "未命中重点地区字体", 16, fontScore),
-    makeSignalScore("vendorFonts", "厂商字体异常", vendorFonts.length ? `设备厂商字体：${vendorFonts.join(" / ")}` : "未命中设备厂商字体", 10, vendorFontScore),
-    makeSignal("domesticBrowser", "浏览器地区特征", domesticBrowser || detectBrowserName(ua), 8, Boolean(domesticBrowser)),
-    makeSignalScore("domesticDevice", "设备地区特征", domesticDevice || "未命中重点设备特征", 6, deviceScore),
-    makeSignal("os", "操作系统", detectOS(ua, nav.userAgentData?.platform), 0, false),
-    makeSignalScore("locale", "Intl 区域设置", locale, 6, localeScore),
-    makeSignalScore("timezoneOffset", "时区偏移", `UTC${offset >= 0 ? "+" : ""}${offset}`, 4, offset === 8 ? 0.7 : 0),
-    makeSignalScore("emojiStyle", "Emoji 渲染风格", emojiStyle, 4, emojiScore),
+    makeSignalScore("timezone", label.timezone, timezone, 26, timezoneScore, text),
+    makeSignalScore("language", label.language, languages.join(", "), 20, languageScore, text),
+    makeSignal("languageVariant", label.languageVariant, chineseVariant || value.noLanguageVariant, 12, Boolean(chineseVariant), text),
+    makeSignalScore("chineseFonts", label.chineseFonts, scFonts.length ? `${value.scFonts}：${scFonts.join(" / ")}` : tcFonts.length ? `${value.tcFonts}：${tcFonts.join(" / ")}` : value.noFonts, 16, fontScore, text),
+    makeSignalScore("vendorFonts", label.vendorFonts, vendorFonts.length ? `${value.vendorFonts}：${vendorFonts.join(" / ")}` : value.noVendorFonts, 10, vendorFontScore, text),
+    makeSignal("domesticBrowser", label.domesticBrowser, domesticBrowser || detectBrowserName(ua, text), 8, Boolean(domesticBrowser), text),
+    makeSignalScore("domesticDevice", label.domesticDevice, domesticDevice || value.noDevice, 6, deviceScore, text),
+    makeSignal("os", label.os, detectOS(ua, nav.userAgentData?.platform, text), 0, false, text),
+    makeSignalScore("locale", label.locale, locale, 6, localeScore, text),
+    makeSignalScore("timezoneOffset", label.timezoneOffset, `UTC${offset >= 0 ? "+" : ""}${offset}`, 4, offset === 8 ? 0.7 : 0, text),
+    makeSignalScore("emojiStyle", label.emojiStyle, emojiStyle, 4, emojiScore, text),
   ];
   return { ...evaluateAccess({ region, languages, timezone, locale, userAgent: ua, source: "browser" }), signals: extraSignals };
 }
 
-function ScoreRing({ score, checked }: { score: number; checked: boolean }) {
+function ScoreRing({ score, checked, text }: { score: number; checked: boolean; text: DetectorLocaleText }) {
   const deg = checked ? Math.max(0, Math.min(100, score)) * 3.6 : 0;
   const ringColor = !checked ? "#d6d3d1" : score === 0 ? "#059669" : score >= 70 ? "#dc2626" : score >= 31 ? "#d97757" : "#f59e0b";
   return (
@@ -188,7 +244,7 @@ function ScoreRing({ score, checked }: { score: number; checked: boolean }) {
       <div className="grid h-[8.5rem] w-[8.5rem] place-items-center rounded-full bg-white shadow-inner">
         <div className="text-center">
           <div className="text-5xl font-black text-[#0b1220]">{checked ? `${score}%` : "--"}</div>
-          <div className="text-xs font-bold tracking-[0.2em] text-stone-500">{checked ? "封号风险" : "等待检测"}</div>
+          <div className="text-xs font-bold tracking-[0.2em] text-stone-500">{checked ? text.risk.blocked : text.risk.waiting}</div>
         </div>
       </div>
     </div>
@@ -256,7 +312,7 @@ async function loadImage(src: string) {
   });
 }
 
-async function createPoster(score: number, confidenceText: string, suspectedRegion: string, status: string) {
+async function createPoster(score: number, confidenceText: string, suspectedRegion: string) {
   const posterRiskLabel = score === 0 ? "完美支持" : score >= 70 ? "封号风险" : score >= 31 ? "高危风险" : "轻度风险";
   const canvas = document.createElement("canvas");
   canvas.width = 720;
@@ -372,6 +428,7 @@ async function createPoster(score: number, confidenceText: string, suspectedRegi
 
 export function Detector({ lang = "zh", locale = "zh" }: Props) {
   const copy = messages[locale].detector;
+  const detectorText = detectorLocaleText[locale];
   const [region, setRegion] = useState<TargetRegion>("auto");
   const [browserResult, setBrowserResult] = useState<ReturnType<typeof collectBrowserSignals> | null>(null);
   const [serverResult, setServerResult] = useState<CheckResponse | null>(null);
@@ -390,28 +447,32 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
   const rawScore = useMemo(() => Math.min(100, signalsScore(browserResult?.signals ?? [], serverResult?.signals ?? [])), [browserResult, serverResult]);
   const animatedScore = loading ? Math.round((rawScore * progress) / 100) : rawScore;
   const status = rawScore >= 70 ? "restricted" : rawScore >= 31 ? "possibly_supported" : rawScore > 0 ? "unknown" : "supported";
-  const suspectedRegion = browserResult?.matchedRegion === "cn" || serverResult?.matchedRegion === "cn" ? "中国大陆" : browserResult?.matchedRegion === "ru" || serverResult?.matchedRegion === "ru" ? "俄罗斯" : browserResult?.matchedRegion === "ir" || serverResult?.matchedRegion === "ir" ? "伊朗" : rawScore > 0 ? "高风险地区" : "官方支持地区";
-  const confidenceText = rawScore >= 70 ? "高度疑似" : rawScore >= 31 ? "疑似" : rawScore > 0 ? "少量命中" : "环境安全，疑似";
+  const pageRegionCode = region !== "auto" ? region : locale === "zh-HK" ? "hk" : locale === "ru" ? "ru" : "cn";
+  const pageRegion = detectorText.regions[pageRegionCode];
+  const russianSummaryRegions: Record<TargetRegion, string> = { auto: "российской", cn: "китайской", hk: "гонконгской", ru: "российской", ir: "иранской" };
+  const suspectedRegion = rawScore > 0 ? locale === "ru" ? russianSummaryRegions[pageRegionCode] : pageRegion : detectorText.confidence.supportedRegion;
+  const confidenceText = rawScore >= 70 ? detectorText.confidence.high : rawScore >= 31 ? detectorText.confidence.medium : rawScore > 0 ? detectorText.confidence.low : detectorText.confidence.safe;
+  const environmentSuffix = locale === "ru" ? "среды" : copy.environmentSuffix;
   const signals = useMemo<SignalView[]>(() => {
     const map = new Map<string, SignalResult>();
     for (const signal of browserResult?.signals ?? []) map.set(signal.id, signal);
     for (const signal of serverResult?.signals ?? []) {
-      if (signal.value && signal.value !== "未知") {
-        if (signal.id === "country") map.set("country", { ...signal, label: "网络出口" });
-        else map.set(`server-${signal.id}`, signal);
+      if (signal.value && signal.value !== detectorLocaleText.zh.unknown) {
+        if (signal.id === "country") map.set("country", { ...signal, label: detectorText.signalLabels.country, value: localizeSignalValue(signal.value, detectorText) });
+        else map.set(`server-${signal.id}`, { ...signal, label: detectorText.signalLabels[signal.id] ?? signal.label, value: signal.value === detectorLocaleText.zh.signalValues.read ? detectorText.signalValues.read : localizeSignalValue(signal.value, detectorText) });
       }
     }
     const proxyCountry = browserIpIntel?.country || serverResult?.ipIntelligence?.detectedCountry;
-    if (proxyCountry) map.set("proxyCountry", { id: "proxyCountry", label: "代理出口国家", value: proxyCountry, score: 0, weight: 0, contribution: 0, source: "server" });
+    if (proxyCountry) map.set("proxyCountry", { id: "proxyCountry", label: detectorText.signalLabels.proxyCountry, value: proxyCountry, score: 0, weight: 0, contribution: 0, source: "server" });
     const detectedIp = browserIpIntel?.ip || serverResult?.ipIntelligence?.detectedIp;
-    if (detectedIp) map.set("ipAddress", { id: "ipAddress", label: "IP 地址", value: detectedIp, score: 0, weight: 0, contribution: 0, source: "server" });
-    if (browserIpIntel?.location) map.set("browserIpLocation", { id: "browserIpLocation", label: "IP 位置", value: browserIpIntel.location, score: 0, weight: 0, contribution: 0, source: "server" });
-    if (browserIpIntel?.asn) map.set("browserIpAsn", { id: "browserIpAsn", label: "ASN", value: browserIpIntel.asn, score: 0, weight: 0, contribution: 0, source: "server" });
-    if (browserIpIntel?.org) map.set("browserIpOrg", { id: "browserIpOrg", label: "网络组织", value: browserIpIntel.org, score: 0, weight: 0, contribution: 0, source: "server" });
+    if (detectedIp) map.set("ipAddress", { id: "ipAddress", label: detectorText.signalLabels.ipAddress, value: detectedIp, score: 0, weight: 0, contribution: 0, source: "server" });
+    if (browserIpIntel?.location) map.set("browserIpLocation", { id: "browserIpLocation", label: detectorText.signalLabels.browserIpLocation, value: localizeLocation(browserIpIntel.location, locale), score: 0, weight: 0, contribution: 0, source: "server" });
+    if (browserIpIntel?.asn) map.set("browserIpAsn", { id: "browserIpAsn", label: detectorText.signalLabels.browserIpAsn, value: browserIpIntel.asn, score: 0, weight: 0, contribution: 0, source: "server" });
+    if (browserIpIntel?.org) map.set("browserIpOrg", { id: "browserIpOrg", label: detectorText.signalLabels.browserIpOrg, value: browserIpIntel.org, score: 0, weight: 0, contribution: 0, source: "server" });
     const merged = defaultSignals.map((item, index) => {
       const found = map.get(item.id);
       const state = progress === 100 || found ? "done" : index === activeSignal ? "running" : index < activeSignal ? "done" : "pending";
-      return { ...item, ...found, state } as SignalView;
+      return { ...item, label: detectorText.signalLabels[item.id] ?? item.label, value: detectorText.pending, ...found, state } as SignalView;
     });
     for (const signal of map.values()) {
       if (!defaultSignals.some((item) => item.id === signal.id)) merged.push({ ...signal, state: progress === 100 ? "done" : "running" });
@@ -440,7 +501,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
       const to = Math.round(((index + 1) / scanSteps.length) * 92);
 
       if (index === 0 || index === 1 || index === 4) {
-        local = collectBrowserSignals(checkRegion);
+        local = collectBrowserSignals(checkRegion, detectorText);
         setBrowserResult(local);
       }
 
@@ -458,7 +519,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
       await sleep(45);
     }
 
-    if (!local) setBrowserResult(collectBrowserSignals(checkRegion));
+    if (!local) setBrowserResult(collectBrowserSignals(checkRegion, detectorText));
     if (!remote) {
       const [res, browserIp] = await Promise.all([
         fetch(`/api/check?region=${checkRegion}&lang=${lang === "en" ? "en" : "zh-CN"}&t=${Date.now()}`, { cache: "no-store" }),
@@ -474,10 +535,11 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
     window.setTimeout(() => setAutoShareReady(true), 0);
   };
 
-  const canShareReport = progress === 100 && !loading;
+  const showSharePoster = locale === "zh";
+  const canShareReport = showSharePoster && progress === 100 && !loading;
   const hasChecked = progress === 100;
   const ringActive = loading || progress > 0;
-  const riskLabel = !ringActive ? "等待检测" : !hasChecked ? "检测中" : animatedScore === 0 ? "完美支持" : animatedScore >= 70 ? "封号风险" : animatedScore >= 31 ? "高危风险" : "轻度风险";
+  const riskLabel = !ringActive ? detectorText.risk.waiting : !hasChecked ? detectorText.risk.checking : animatedScore === 0 ? detectorText.risk.supported : animatedScore >= 70 ? detectorText.risk.blocked : animatedScore >= 31 ? detectorText.risk.high : detectorText.risk.light;
   const riskLabelClass = !ringActive ? "bg-stone-100 text-stone-500" : !hasChecked ? "bg-blue-50 text-blue-600" : animatedScore === 0 ? "bg-emerald-50 text-emerald-700" : animatedScore >= 70 ? "bg-red-50 text-red-600" : animatedScore >= 31 ? "bg-orange-50 text-orange-700" : "bg-amber-50 text-amber-700";
   const ipIntel = serverResult?.ipIntelligence;
   const primaryIpSource = ipIntel?.sources
@@ -485,22 +547,22 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
     .sort((a, b) => [b.ip, b.country, b.region, b.city, b.asn, b.isp, b.org, b.latitude, b.longitude].filter(Boolean).length - [a.ip, a.country, a.region, a.city, a.asn, a.isp, a.org, a.latitude, a.longitude].filter(Boolean).length)[0];
   const ipAddress = primaryIpSource?.ip || ipIntel?.detectedIp || null;
   const ipMetricCards = primaryIpSource ? [
-    ipAddress && { label: "IP 地址", value: ipAddress },
-    ipAddress && { label: ipAddress.includes(":") ? "IPv6" : "IPv4", value: ipAddress },
-    primaryIpSource.asn && { label: "ASN", value: primaryIpSource.asn },
-    (primaryIpSource.org || primaryIpSource.isp) && { label: "ASN 所有者", value: primaryIpSource.org || primaryIpSource.isp },
-    primaryIpSource.isp && { label: "企业", value: primaryIpSource.isp },
-    primaryIpSource.longitude != null && { label: "经度", value: String(primaryIpSource.longitude) },
-    primaryIpSource.latitude != null && { label: "纬度", value: String(primaryIpSource.latitude) },
-    primaryIpSource.networkType && { label: "IP 类型", value: primaryIpSource.networkType },
-    primaryIpSource.risk && { label: "风控值", value: primaryIpSource.risk },
-    primaryIpSource.isp && { label: "ISP", value: primaryIpSource.isp },
+    ipAddress && { label: detectorText.ipMetricLabels.ipAddress, value: ipAddress },
+    ipAddress && { label: ipAddress.includes(":") ? detectorText.ipMetricLabels.ipv6 : detectorText.ipMetricLabels.ipv4, value: ipAddress },
+    primaryIpSource.asn && { label: detectorText.ipMetricLabels.asn, value: primaryIpSource.asn },
+    (primaryIpSource.org || primaryIpSource.isp) && { label: detectorText.ipMetricLabels.asnOwner, value: primaryIpSource.org || primaryIpSource.isp },
+    primaryIpSource.isp && { label: detectorText.ipMetricLabels.company, value: primaryIpSource.isp },
+    primaryIpSource.longitude != null && { label: detectorText.ipMetricLabels.longitude, value: String(primaryIpSource.longitude) },
+    primaryIpSource.latitude != null && { label: detectorText.ipMetricLabels.latitude, value: String(primaryIpSource.latitude) },
+    primaryIpSource.networkType && { label: detectorText.ipMetricLabels.ipType, value: primaryIpSource.networkType },
+    primaryIpSource.risk && { label: detectorText.ipMetricLabels.risk, value: primaryIpSource.risk },
+    primaryIpSource.isp && { label: detectorText.ipMetricLabels.isp, value: primaryIpSource.isp },
 
   ].filter(Boolean) as Array<{ label: string; value: string }> : [];
 
   const openPoster = async () => {
     if (!canShareReport) return;
-    const dataUrl = await createPoster(animatedScore, confidenceText, suspectedRegion, statusText[status]);
+    const dataUrl = await createPoster(animatedScore, confidenceText, suspectedRegion);
     if (dataUrl) setPosterUrl(dataUrl);
   };
 
@@ -529,7 +591,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
   }, []);
 
   useEffect(() => {
-    if (!autoShareReady || !canShareReport || autoPosterShown) return;
+    if (!showSharePoster || !autoShareReady || !canShareReport || autoPosterShown) return;
     let cancelled = false;
     let timers: number[] = [];
     const renderDelay = window.setTimeout(() => {
@@ -580,32 +642,36 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
                 <div className="text-2xl text-[#0b1220] md:inline md:text-3xl">
                   <span>{confidenceText}</span>
                   <span className="mx-1 text-[#d97757]">{suspectedRegion}</span>
-                  <span>{copy.environmentSuffix}</span>
+                  <span>{environmentSuffix}</span>
                   <span className="hidden md:inline">：</span>
                 </div>
                 <div className="mt-2 text-2xl md:mt-0 md:inline md:text-3xl">
                   <span className="text-stone-600">{copy.riskPrefix}</span>
                   <span className="mx-1 text-red-600">{animatedScore}%</span>
                   <span className="text-stone-400">·</span>
-                  <span className="ml-2 text-[#c05f3c]">{statusText[status]}</span>
+                  <span className="ml-2 text-[#c05f3c]">{detectorText.status[status]}</span>
                 </div>
               </>
             ) : (
               <div className="text-2xl text-[#0b1220] md:text-3xl">{copy.idleReport}</div>
             )}
           </div>
-          <button type="button" onClick={() => void openPoster()} disabled={!canShareReport} className="mt-5 rounded-full bg-[#0b1220] px-8 py-4 text-base font-black text-white shadow-xl shadow-slate-950/20 transition hover:bg-[#d97757] disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-400 disabled:shadow-none md:px-10 md:py-5 md:text-lg">
-            {shareCountdown ? copy.shareAfter(shareCountdown) : canShareReport ? copy.shareReport : copy.shareReady}
-          </button>
-          <p className="mt-3 text-sm font-bold text-stone-500 md:text-base">{copy.shareHint}</p>
-          {shareCountdown && <p className="mt-2 text-sm font-semibold text-stone-500">{copy.generatingPoster}</p>}
+          {showSharePoster && (
+            <>
+              <button type="button" onClick={() => void openPoster()} disabled={!canShareReport} className="mt-5 rounded-full bg-[#0b1220] px-8 py-4 text-base font-black text-white shadow-xl shadow-slate-950/20 transition hover:bg-[#d97757] disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-400 disabled:shadow-none md:px-10 md:py-5 md:text-lg">
+                {shareCountdown ? copy.shareAfter(shareCountdown) : canShareReport ? copy.shareReport : copy.shareReady}
+              </button>
+              <p className="mt-3 text-sm font-bold text-stone-500 md:text-base">{copy.shareHint}</p>
+              {shareCountdown && <p className="mt-2 text-sm font-semibold text-stone-500">{copy.generatingPoster}</p>}
+            </>
+          )}
         </div>
       </div>
 
       <div className="mt-5 rounded-[2rem] border border-stone-200 bg-white/80 p-4 shadow-xl shadow-orange-950/5 md:p-6">
         <div className="grid gap-6 lg:grid-cols-[260px_1fr] xl:grid-cols-[280px_1fr]">
           <div className="flex flex-col items-center justify-center rounded-3xl bg-white p-5">
-            <ScoreRing score={animatedScore} checked={ringActive} />
+            <ScoreRing score={animatedScore} checked={ringActive} text={detectorText} />
             <div className={`mt-5 rounded-full px-4 py-2 text-sm font-bold ${riskLabelClass}`}>{riskLabel}</div>
           </div>
           <div>
@@ -633,7 +699,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
             <div className="mt-5 grid grid-cols-2 gap-3">
               {regions.map((item) => (
                 <button key={item.code} type="button" onClick={() => setRegion(item.code)} className={`rounded-2xl border px-4 py-4 text-center font-black transition ${region === item.code ? "border-[#d97757] bg-orange-50 text-[#c05f3c]" : "border-stone-200 bg-white text-[#0b1220] hover:border-stone-300"}`}>
-                  {item.label}
+                  {detectorText.regions[item.code]}
                 </button>
               ))}
             </div>
@@ -644,7 +710,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
         </div>
       )}
 
-      {posterUrl && (
+      {showSharePoster && posterUrl && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 p-3 backdrop-blur-sm sm:p-4" onClick={() => setPosterUrl(null)}>
           <div className="relative flex max-h-[92vh] w-full max-w-full flex-col overflow-y-auto rounded-[1.5rem] bg-white p-3 shadow-2xl md:max-w-[min(1120px,92vw)] md:rounded-[2rem] md:p-5" onClick={(event) => event.stopPropagation()}>
             {copyToast && (
