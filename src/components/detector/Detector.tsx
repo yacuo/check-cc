@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { evaluateAccess } from "@/lib/detection/scoring";
 import type { CheckResponse, RegionCode, SignalResult } from "@/lib/detection/types";
+import { messages, type LocaleCode } from "@/i18n/messages";
 
-type Props = { lang?: "zh" | "en" };
+type Props = { lang?: "zh" | "en"; locale?: LocaleCode };
 
 type ScanStep = { id: string; title: string; desc: string };
 
@@ -369,7 +370,8 @@ async function createPoster(score: number, confidenceText: string, suspectedRegi
   return canvas.toDataURL("image/png");
 }
 
-export function Detector({ lang = "zh" }: Props) {
+export function Detector({ lang = "zh", locale = "zh" }: Props) {
+  const copy = messages[locale].detector;
   const [region, setRegion] = useState<TargetRegion>("auto");
   const [browserResult, setBrowserResult] = useState<ReturnType<typeof collectBrowserSignals> | null>(null);
   const [serverResult, setServerResult] = useState<CheckResponse | null>(null);
@@ -556,11 +558,7 @@ export function Detector({ lang = "zh" }: Props) {
     <section className="mx-auto p-0">
       <div className="sticky top-[72px] z-40 py-4">
         <div className="mx-auto flex max-w-[1120px] flex-col items-center gap-3 pb-2 md:flex-row md:justify-center md:gap-10 xl:max-w-[1280px]">
-          {[
-            ["Claude 环境检测", "bg-[#d97757]"],
-            ["Claude 封号风险", "bg-red-500"],
-            ["运行环境检查", "bg-emerald-500"],
-          ].map(([title, color]) => (
+          {copy.cardTags.map((title, index) => [title, ["bg-[#d97757]", "bg-red-500", "bg-emerald-500"][index]] as const).map(([title, color]) => (
             <div key={title} className="group flex items-center gap-3 text-lg font-black text-[#0b1220] md:text-2xl">
               <span className={`size-2.5 rounded-full ${color} shadow-[0_0_18px_rgba(217,119,87,0.45)]`} />
               <span className="relative whitespace-nowrap after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-[#d97757] after:transition group-hover:after:scale-x-100">
@@ -573,7 +571,7 @@ export function Detector({ lang = "zh" }: Props) {
 
       <div className="mx-auto mt-5 w-full text-center">
         <button type="button" onClick={() => setShowRegionPicker(true)} disabled={loading} className="h-14 w-full rounded-full bg-[#d97757] px-8 text-lg font-black text-white shadow-xl shadow-orange-900/20 transition hover:bg-[#c05f3c] disabled:opacity-60 md:w-auto md:min-w-[360px]">
-          {loading ? "正在执行多维度检测..." : "立即重新检测 Claude 环境"}
+          {loading ? copy.loadingText : copy.idleCta}
         </button>
         <div className="relative mt-10 text-center font-black">
           <div className="py-3 leading-tight md:py-4">
@@ -582,25 +580,25 @@ export function Detector({ lang = "zh" }: Props) {
                 <div className="text-2xl text-[#0b1220] md:inline md:text-3xl">
                   <span>{confidenceText}</span>
                   <span className="mx-1 text-[#d97757]">{suspectedRegion}</span>
-                  <span>环境</span>
+                  <span>{copy.environmentSuffix}</span>
                   <span className="hidden md:inline">：</span>
                 </div>
                 <div className="mt-2 text-2xl md:mt-0 md:inline md:text-3xl">
-                  <span className="text-stone-600">封号风险</span>
+                  <span className="text-stone-600">{copy.riskPrefix}</span>
                   <span className="mx-1 text-red-600">{animatedScore}%</span>
                   <span className="text-stone-400">·</span>
                   <span className="ml-2 text-[#c05f3c]">{statusText[status]}</span>
                 </div>
               </>
             ) : (
-              <div className="text-2xl text-[#0b1220] md:text-3xl">点击检测，生成 Claude 环境风险报告</div>
+              <div className="text-2xl text-[#0b1220] md:text-3xl">{copy.idleReport}</div>
             )}
           </div>
           <button type="button" onClick={() => void openPoster()} disabled={!canShareReport} className="mt-5 rounded-full bg-[#0b1220] px-8 py-4 text-base font-black text-white shadow-xl shadow-slate-950/20 transition hover:bg-[#d97757] disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-400 disabled:shadow-none md:px-10 md:py-5 md:text-lg">
-            {shareCountdown ? `${shareCountdown} 秒后打开分享报告` : canShareReport ? "分享检测报告" : "检测完成后可分享"}
+            {shareCountdown ? copy.shareAfter(shareCountdown) : canShareReport ? copy.shareReport : copy.shareReady}
           </button>
-          <p className="mt-3 text-sm font-bold text-stone-500 md:text-base">检查后，把检查报告：分享到朋友圈，让朋友少踩 Claude 封号的坑</p>
-          {shareCountdown && <p className="mt-2 text-sm font-semibold text-stone-500">检测完成，正在生成朋友圈分享海报...</p>}
+          <p className="mt-3 text-sm font-bold text-stone-500 md:text-base">{copy.shareHint}</p>
+          {shareCountdown && <p className="mt-2 text-sm font-semibold text-stone-500">{copy.generatingPoster}</p>}
         </div>
       </div>
 
@@ -612,8 +610,8 @@ export function Detector({ lang = "zh" }: Props) {
           </div>
           <div>
             <div className="flex items-center justify-between gap-4">
-              <h3 className="text-xl font-black text-[#0b1220]">{hasChecked ? `命中${signals.length + ipMetricCards.length}个检测信号，当前检测结果已完成` : "命中的检测信号"}</h3>
-              <span className="rounded-full bg-[#fffaf3] px-3 py-1 text-xs font-bold text-stone-500">共展示{signals.length + ipMetricCards.length}项</span>
+              <h3 className="text-xl font-black text-[#0b1220]">{hasChecked ? copy.signalCount(signals.length + ipMetricCards.length, true) : copy.title}</h3>
+              <span className="rounded-full bg-[#fffaf3] px-3 py-1 text-xs font-bold text-stone-500">{copy.signalCount(signals.length + ipMetricCards.length, false)}</span>
             </div>
             <div className="mt-4"><SignalList signals={signals} extraCards={ipMetricCards} /></div>
           </div>
@@ -625,10 +623,10 @@ export function Detector({ lang = "zh" }: Props) {
           <div className="relative z-[10000] w-full max-w-md rounded-[2rem] border border-stone-200 bg-white p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h3 className="text-xl font-black text-[#0b1220]">选择检测目标</h3>
-                <p className="mt-1 text-sm text-stone-500">默认自动检测，也可以指定重点地区。</p>
+                <h3 className="text-xl font-black text-[#0b1220]">{copy.targetTitle}</h3>
+                <p className="mt-1 text-sm text-stone-500">{copy.targetDesc}</p>
               </div>
-              <button type="button" onClick={() => setShowRegionPicker(false)} aria-label="关闭" className="grid size-11 place-items-center rounded-full bg-stone-100 text-stone-600 transition hover:bg-stone-200">
+              <button type="button" onClick={() => setShowRegionPicker(false)} aria-label={copy.close} className="grid size-11 place-items-center rounded-full bg-stone-100 text-stone-600 transition hover:bg-stone-200">
                 <svg viewBox="0 0 24 24" className="size-7" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
               </button>
             </div>
@@ -640,7 +638,7 @@ export function Detector({ lang = "zh" }: Props) {
               ))}
             </div>
             <button type="button" onClick={() => { setShowRegionPicker(false); void runCheck(); }} className="mt-5 h-12 w-full rounded-full bg-[#d97757] font-black text-white shadow-lg shadow-orange-900/15">
-              开始检测
+              {copy.startCheck}
             </button>
           </div>
         </div>
@@ -658,7 +656,7 @@ export function Detector({ lang = "zh" }: Props) {
             )}
             <div className="flex items-center justify-between gap-4">
               <h3 className="font-black text-[#0b1220]">检测报告海报</h3>
-              <button type="button" onClick={() => setPosterUrl(null)} aria-label="关闭" className="grid size-11 place-items-center rounded-full bg-stone-100 text-stone-600 transition hover:bg-stone-200">
+              <button type="button" onClick={() => setPosterUrl(null)} aria-label={copy.close} className="grid size-11 place-items-center rounded-full bg-stone-100 text-stone-600 transition hover:bg-stone-200">
                 <svg viewBox="0 0 24 24" className="size-7" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
               </button>
             </div>
