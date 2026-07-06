@@ -326,6 +326,23 @@ function SignalList({ signals, extraCards = [], onUnlockModalChange }: { signals
   return (
     <>
       <div className="grid grid-cols-2 gap-2 md:grid-cols-2 lg:min-h-[216px] lg:content-between xl:grid-cols-3 2xl:grid-cols-4">
+        {shouldLock && (
+          <button type="button" onClick={openUnlockModal} className="relative col-span-2 overflow-hidden rounded-xl border border-stone-300 bg-stone-100 p-3 text-left transition hover:-translate-y-0.5 hover:bg-stone-200 md:hidden">
+            <div className="grid grid-cols-2 gap-2">
+              {Array.from({ length: Math.min(hiddenCount, 6) }, (_, itemIndex) => (
+                <div key={itemIndex} className="rounded-xl border border-stone-300 bg-white/70 px-3 py-2 blur-[3px]">
+                  <div className="h-4 w-3/4 rounded bg-stone-400" />
+                  <div className="mt-2 h-3 w-1/2 rounded bg-stone-300" />
+                </div>
+              ))}
+            </div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-200/80 px-4 text-center backdrop-blur-[2px]">
+              <div className="w-full text-base font-black text-[#0b1220]">还有 {hiddenCount} 个高风险封号检测指标已隐藏</div>
+              <div className="mt-2 text-sm font-semibold leading-5 text-stone-700">完成反爬虫人机验证后查看完整报告</div>
+            </div>
+          </button>
+        )}
+
         {visibleItems.map((item) => item.type === "signal" ? (
           <div key={item.key} className={`rounded-xl border px-3 py-2 transition ${signalTone(item.signal)}`}>
             <div className="flex min-w-0 items-center justify-between gap-3">
@@ -344,7 +361,7 @@ function SignalList({ signals, extraCards = [], onUnlockModalChange }: { signals
         ))}
 
         {shouldLock && (
-          <button type="button" onClick={openUnlockModal} className="relative col-span-2 overflow-hidden rounded-xl border border-stone-300 bg-stone-100 p-3 text-left transition hover:-translate-y-0.5 hover:bg-stone-200 md:col-span-2 xl:col-span-3 2xl:col-span-4">
+          <button type="button" onClick={openUnlockModal} className="relative col-span-2 hidden overflow-hidden rounded-xl border border-stone-300 bg-stone-100 p-3 text-left transition hover:-translate-y-0.5 hover:bg-stone-200 md:block md:col-span-2 xl:col-span-3 2xl:col-span-4">
             <div className="grid grid-cols-2 gap-2 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {Array.from({ length: hiddenCount }, (_, itemIndex) => (
                 <div key={itemIndex} className={`rounded-xl border border-stone-300 bg-white/70 px-3 py-2 blur-[3px] ${itemIndex >= 6 ? "hidden md:block" : ""}`}>
@@ -701,10 +718,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
     if (posterGenerating) return;
     setPosterGenerating(true);
     try {
-      const [dataUrl] = await Promise.all([
-        createPoster(animatedScore, confidenceText, suspectedRegion),
-        sleep(2500),
-      ]);
+      const dataUrl = await createPoster(animatedScore, confidenceText, suspectedRegion);
       if (dataUrl) setPosterUrl(dataUrl);
     } finally {
       setPosterGenerating(false);
@@ -725,7 +739,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
   };
 
   const copySiteLink = async () => {
-    await navigator.clipboard.writeText("https://checkcc.org");
+    await navigator.clipboard.writeText("Claude Code 环境风险检测\n独家 AI 环境指纹引擎，扫描运行环境、地区画像与封号风险。\nhttps://checkcc.org");
     showCopiedToast("链接已复制");
   };
 
@@ -823,7 +837,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
               <h3 className="text-xl font-black text-[#0b1220]">{hasChecked ? copy.signalCount(signals.length + ipMetricCards.length, true) : copy.title}</h3>
               <span className="rounded-full bg-[#fffaf3] px-3 py-1 text-xs font-bold text-stone-500">{copy.signalCount(signals.length + ipMetricCards.length, false)}</span>
             </div>
-            <div className="mt-4"><SignalList signals={signals} extraCards={ipMetricCards} onUnlockModalChange={handleUnlockModalChange} /></div>
+            <div className="mt-2 md:mt-4"><SignalList signals={signals} extraCards={ipMetricCards} onUnlockModalChange={handleUnlockModalChange} /></div>
           </div>
         </div>
       </div>

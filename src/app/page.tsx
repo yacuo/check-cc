@@ -133,6 +133,24 @@ export function HomeContent({ locale = "zh" }: { locale?: LocaleCode }) {
         </div>
       </section>
 
+      <section className={`${pageMax} mt-20`}>
+        <div className="grid gap-8 rounded-[2.5rem] border border-stone-200 bg-white/80 p-6 shadow-xl shadow-orange-950/5 md:p-8 lg:grid-cols-[0.85fr_1.15fr] lg:p-10">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.24em] text-[#d97757]">{copy.privacy.eyebrow}</p>
+            <h2 className="mt-3 text-3xl font-black leading-tight md:text-5xl">{copy.privacy.title}</h2>
+            <p className="mt-5 text-base leading-8 text-stone-600">{copy.privacy.desc}</p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            {copy.privacy.items.map(([question, answer]) => (
+              <article key={question} className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
+                <h3 className="text-lg font-black text-[#0b1220]">{question}</h3>
+                <p className="mt-3 text-sm leading-6 text-stone-600">{answer}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section id="faq" className={`${pageMax} mt-20`}>
         <h2 className="text-center text-3xl font-black md:text-5xl">{copy.faq.title}</h2>
         <div className="mt-10 grid gap-4 lg:grid-cols-2">
