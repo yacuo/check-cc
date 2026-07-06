@@ -1,14 +1,27 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Detector } from "@/components/detector/Detector";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteFrame } from "@/components/layout/SiteFrame";
 import { messages, type LocaleCode } from "@/i18n/messages";
 
 export const metadata: Metadata = {
   title: "Claude 环境检测｜Claude 封号风险、运行环境检查与可用地区检测",
-  description: "Check Claude 提供 Claude 环境检测、Claude 运行环境检查、Claude 封号风险评估、网络节点与 DNS/IP 地区检测，帮助用户在开通 Claude Pro、Max 或 API 前确认可用性。",
+  description: "CheckCC.org 提供 Claude 环境检测和封号风险检测，检查 IP 地区、系统时区、浏览器语言、设备指纹、网络出口、订阅支付和 API 可用性风险，帮助用户在申请 Claude、开通 Claude Pro 或使用 Claude API 前排查异常环境。",
 };
 
-const pageMax = "mx-auto w-full max-w-[1440px] px-5 md:px-8 2xl:max-w-[1536px] min-[1800px]:max-w-[1680px] min-[1920px]:max-w-[1760px]";
+const pageMax = "mx-auto w-full max-w-[1440px] px-5 md:px-8 2xl:max-w-[1536px] min-[1800px]:max-w-[1760px] min-[1920px]:max-w-[1920px] min-[2400px]:max-w-[2200px]";
+
+const faqArticleSlugs = [
+  "claude-feng-hao",
+  "claude-feng-hao-yuan-yin",
+  "claude-feng-hao-ji-zhi",
+  "claude-feng-hao-jie-feng",
+  "claude-feng-hao-tui-kuan",
+  "claude-shen-qing",
+  "claude-api-shen-qing",
+  "claude-code-shen-qing",
+];
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -123,29 +136,17 @@ export function HomeContent({ locale = "zh" }: { locale?: LocaleCode }) {
       <section id="faq" className={`${pageMax} mt-20`}>
         <h2 className="text-center text-3xl font-black md:text-5xl">{copy.faq.title}</h2>
         <div className="mt-10 grid gap-4 lg:grid-cols-2">
-          {copy.faq.items.map(([question, answer]) => (
-            <article key={question} className="rounded-[2rem] border border-stone-200 bg-white/80 p-6">
+          {copy.faq.items.map(([question, answer], index) => (
+            <Link key={question} href={`/${faqArticleSlugs[index] ?? "claude"}`} className="rounded-[2rem] border border-stone-200 bg-white/80 p-6 transition hover:-translate-y-0.5 hover:border-[#d97757]/40 hover:bg-orange-50 hover:shadow-xl hover:shadow-stone-900/10">
               <h3 className="text-lg font-black">{question}</h3>
               <p className="mt-3 leading-7 text-stone-600">{answer}</p>
-            </article>
+              <span className="mt-4 inline-flex text-sm font-black text-[#d97757]">阅读全文</span>
+            </Link>
           ))}
         </div>
       </section>
 
-      <footer className="mt-20 border-t border-stone-200 bg-[#fffaf3]">
-        <div className={`${pageMax} grid gap-8 py-10 md:grid-cols-[1.2fr_0.8fr]`}>
-          <section>
-            <h2 className="text-2xl font-black">{copy.footer.title}</h2>
-            <p className="mt-4 max-w-4xl leading-8 text-stone-600">{copy.footer.desc}</p>
-          </section>
-          <section className="text-sm leading-7 text-stone-600 md:text-right">
-            <div className="font-black text-[#0b1220]">{copy.footer.infoTitle}</div>
-            <p className="mt-3">{copy.footer.domain}</p>
-            <p>{copy.footer.feature}</p>
-            <p>{copy.footer.note}</p>
-          </section>
-        </div>
-      </footer>
+      <SiteFooter locale={locale} />
     </main>
     </SiteFrame>
   );

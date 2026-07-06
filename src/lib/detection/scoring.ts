@@ -1,4 +1,4 @@
-import { REGION_PROFILES } from "@/lib/regions";
+import { REGION_PROFILES } from "../regions";
 import type { AccessStatus, ProductAccess, RegionCode, RegionProfile, SignalResult } from "./types";
 
 type Input = {

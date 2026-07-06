@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { evaluateAccess } from "@/lib/detection/scoring";
 import type { CheckResponse, RegionCode, SignalResult } from "@/lib/detection/types";
 import { messages, type LocaleCode } from "@/i18n/messages";
@@ -78,6 +79,15 @@ function normalizeRegion(code: TargetRegion): RegionCode {
   return code === "hk" ? "auto" : code;
 }
 
+function getCheckApiUrl(region: RegionCode, lang: "zh" | "en") {
+  const endpoint = process.env.NEXT_PUBLIC_CHECK_API_URL || "https://checkcc.org/check";
+  const url = new URL(endpoint);
+  url.searchParams.set("region", region);
+  url.searchParams.set("lang", lang === "en" ? "en" : "zh-CN");
+  url.searchParams.set("t", String(Date.now()));
+  return url.toString();
+}
+
 const scanSteps: ScanStep[] = [
   { id: "language", title: "浏览器语言版本检测", desc: "读取 navigator.languages、Accept-Language 和 Intl locale" },
   { id: "timezone", title: "系统时区与地区环境检测", desc: "检查系统时区、UTC 偏移和重点受限地区时区" },
@@ -101,6 +111,8 @@ const defaultSignals: SignalView[] = [
   { id: "country", label: "网络出口", value: "等待检测", score: 0, weight: 20, contribution: 0, source: "server" },
   { id: "proxyCountry", label: "代理出口国家", value: "等待检测", score: 0, weight: 0, contribution: 0, source: "server" },
   { id: "ipAddress", label: "IP 地址", value: "等待检测", score: 0, weight: 0, contribution: 0, source: "server" },
+  { id: "browserIpLocation", label: "IP 位置", value: "等待检测", score: 0, weight: 0, contribution: 0, source: "server" },
+  { id: "browserIpOrg", label: "网络组织", value: "等待检测", score: 0, weight: 0, contribution: 0, source: "server" },
   { id: "os", label: "操作系统", value: "等待检测", score: 0, weight: 0, contribution: 0, source: "browser" },
 ];
 
@@ -175,6 +187,17 @@ function detectOS(ua: string, platform: string | undefined, text: DetectorLocale
   return platform || text.signalValues.unknownSystem;
 }
 
+function detectDeviceName(ua: string, platform: string | undefined, text: DetectorLocaleText) {
+  const os = detectOS(ua, platform, text);
+  if (/iphone/i.test(ua)) return `iPhone / ${os}`;
+  if (/ipad/i.test(ua)) return `iPad / ${os}`;
+  if (/android/i.test(ua)) return `Android 设备 / ${os}`;
+  if (/macintosh|mac os|macintel/i.test(`${ua} ${platform ?? ""}`)) return `Mac / ${os}`;
+  if (/windows/i.test(ua)) return `Windows PC / ${os}`;
+  if (/linux/i.test(ua)) return `Linux 设备 / ${os}`;
+  return os;
+}
+
 function loadBrowserPing0(): Promise<BrowserIpIntel | null> {
   return new Promise((resolve) => {
     const callbackName = `checkccPing0${Date.now()}${Math.random().toString(36).slice(2)}`;
@@ -227,7 +250,9 @@ function collectBrowserSignals(region: RegionCode, text: DetectorLocaleText) {
     makeSignalScore("chineseFonts", label.chineseFonts, scFonts.length ? `${value.scFonts}：${scFonts.join(" / ")}` : tcFonts.length ? `${value.tcFonts}：${tcFonts.join(" / ")}` : value.noFonts, 16, fontScore, text),
     makeSignalScore("vendorFonts", label.vendorFonts, vendorFonts.length ? `${value.vendorFonts}：${vendorFonts.join(" / ")}` : value.noVendorFonts, 10, vendorFontScore, text),
     makeSignal("domesticBrowser", label.domesticBrowser, domesticBrowser || detectBrowserName(ua, text), 8, Boolean(domesticBrowser), text),
+    makeSignal("browser", label.browser ?? "浏览器/应用环境", `${detectBrowserName(ua, text)} / ${detectOS(ua, nav.userAgentData?.platform, text)}`, 0, false, text),
     makeSignalScore("domesticDevice", label.domesticDevice, domesticDevice || value.noDevice, 6, deviceScore, text),
+    makeSignal("device", label.device ?? "设备/系统线索", detectDeviceName(ua, nav.userAgentData?.platform, text), 0, false, text),
     makeSignal("os", label.os, detectOS(ua, nav.userAgentData?.platform, text), 0, false, text),
     makeSignalScore("locale", label.locale, locale, 6, localeScore, text),
     makeSignalScore("timezoneOffset", label.timezoneOffset, `UTC${offset >= 0 ? "+" : ""}${offset}`, 4, offset === 8 ? 0.7 : 0, text),
@@ -249,6 +274,14 @@ function ScoreRing({ score, checked, text }: { score: number; checked: boolean; 
       </div>
     </div>
   );
+}
+
+function isPublicIp(ip: string) {
+  if (ip.includes(":")) return !/^(::1|fc|fd|fe80:)/i.test(ip);
+  const parts = ip.split(".").map(Number);
+  if (parts.length !== 4 || parts.some((part) => Number.isNaN(part))) return false;
+  const [a, b] = parts;
+  return !(a === 10 || a === 127 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 169 && b === 254) || a === 0);
 }
 
 function signalsScore(browserSignals: SignalResult[], serverSignals: SignalResult[]) {
@@ -448,9 +481,10 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
   const animatedScore = loading ? Math.round((rawScore * progress) / 100) : rawScore;
   const status = rawScore >= 70 ? "restricted" : rawScore >= 31 ? "possibly_supported" : rawScore > 0 ? "unknown" : "supported";
   const pageRegionCode = region !== "auto" ? region : locale === "zh-HK" ? "hk" : locale === "ru" ? "ru" : "cn";
-  const pageRegion = detectorText.regions[pageRegionCode];
+  const detectedRegionCode = (serverResult?.matchedRegion ?? browserResult?.matchedRegion ?? pageRegionCode) as TargetRegion;
+  const pageRegion = detectorText.regions[detectedRegionCode];
   const russianSummaryRegions: Record<TargetRegion, string> = { auto: "российской", cn: "китайской", hk: "гонконгской", ru: "российской", ir: "иранской" };
-  const suspectedRegion = rawScore > 0 ? locale === "ru" ? russianSummaryRegions[pageRegionCode] : pageRegion : detectorText.confidence.supportedRegion;
+  const suspectedRegion = rawScore > 0 ? locale === "ru" ? russianSummaryRegions[detectedRegionCode] : pageRegion : detectorText.confidence.supportedRegion;
   const confidenceText = rawScore >= 70 ? detectorText.confidence.high : rawScore >= 31 ? detectorText.confidence.medium : rawScore > 0 ? detectorText.confidence.low : detectorText.confidence.safe;
   const environmentSuffix = locale === "ru" ? "среды" : copy.environmentSuffix;
   const signals = useMemo<SignalView[]>(() => {
@@ -464,7 +498,11 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
     }
     const proxyCountry = browserIpIntel?.country || serverResult?.ipIntelligence?.detectedCountry;
     if (proxyCountry) map.set("proxyCountry", { id: "proxyCountry", label: detectorText.signalLabels.proxyCountry, value: proxyCountry, score: 0, weight: 0, contribution: 0, source: "server" });
-    const detectedIp = browserIpIntel?.ip || serverResult?.ipIntelligence?.detectedIp;
+    const sourceIps = serverResult?.ipIntelligence?.sources.map((item) => item.ip).filter((ip): ip is string => typeof ip === "string" && isPublicIp(ip)) ?? [];
+    const detectedIpv4 = sourceIps.find((ip) => !ip.includes(":"));
+    const browserPublicIp = browserIpIntel?.ip && isPublicIp(browserIpIntel.ip) ? browserIpIntel.ip : null;
+    const serverPublicIp = serverResult?.ipIntelligence?.detectedIp && isPublicIp(serverResult.ipIntelligence.detectedIp) ? serverResult.ipIntelligence.detectedIp : null;
+    const detectedIp = detectedIpv4 || browserPublicIp || serverPublicIp;
     if (detectedIp) map.set("ipAddress", { id: "ipAddress", label: detectorText.signalLabels.ipAddress, value: detectedIp, score: 0, weight: 0, contribution: 0, source: "server" });
     if (browserIpIntel?.location) map.set("browserIpLocation", { id: "browserIpLocation", label: detectorText.signalLabels.browserIpLocation, value: localizeLocation(browserIpIntel.location, locale), score: 0, weight: 0, contribution: 0, source: "server" });
     if (browserIpIntel?.asn) map.set("browserIpAsn", { id: "browserIpAsn", label: detectorText.signalLabels.browserIpAsn, value: browserIpIntel.asn, score: 0, weight: 0, contribution: 0, source: "server" });
@@ -507,7 +545,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
 
       if (index === 2) {
         const [res, browserIp] = await Promise.all([
-          fetch(`/api/check?region=${checkRegion}&lang=${lang === "en" ? "en" : "zh-CN"}&t=${Date.now()}`, { cache: "no-store" }),
+          fetch(getCheckApiUrl(checkRegion, lang), { cache: "no-store" }),
           loadBrowserPing0(),
         ]);
         remote = (await res.json()) as CheckResponse;
@@ -522,7 +560,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
     if (!local) setBrowserResult(collectBrowserSignals(checkRegion, detectorText));
     if (!remote) {
       const [res, browserIp] = await Promise.all([
-        fetch(`/api/check?region=${checkRegion}&lang=${lang === "en" ? "en" : "zh-CN"}&t=${Date.now()}`, { cache: "no-store" }),
+        fetch(getCheckApiUrl(checkRegion, lang), { cache: "no-store" }),
         loadBrowserPing0(),
       ]);
       setServerResult((await res.json()) as CheckResponse);
@@ -545,10 +583,16 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
   const primaryIpSource = ipIntel?.sources
     .filter((source) => source.status === "ok" && (source.ip || source.country || source.asn || source.isp || source.org))
     .sort((a, b) => [b.ip, b.country, b.region, b.city, b.asn, b.isp, b.org, b.latitude, b.longitude].filter(Boolean).length - [a.ip, a.country, a.region, a.city, a.asn, a.isp, a.org, a.latitude, a.longitude].filter(Boolean).length)[0];
-  const ipAddress = primaryIpSource?.ip || ipIntel?.detectedIp || null;
+  const ipSourceAddresses = ipIntel?.sources.map((source) => source.ip).filter((ip): ip is string => typeof ip === "string" && isPublicIp(ip)) ?? [];
+  const ipv4Address = ipSourceAddresses.find((ip) => !ip.includes(":")) ?? null;
+  const ipv6Address = ipSourceAddresses.find((ip) => ip.includes(":")) ?? null;
+  const primaryPublicIp = primaryIpSource?.ip && isPublicIp(primaryIpSource.ip) ? primaryIpSource.ip : null;
+  const detectedPublicIp = ipIntel?.detectedIp && isPublicIp(ipIntel.detectedIp) ? ipIntel.detectedIp : null;
+  const ipAddress = ipv4Address || primaryPublicIp || detectedPublicIp || null;
   const ipMetricCards = primaryIpSource ? [
     ipAddress && { label: detectorText.ipMetricLabels.ipAddress, value: ipAddress },
-    ipAddress && { label: ipAddress.includes(":") ? detectorText.ipMetricLabels.ipv6 : detectorText.ipMetricLabels.ipv4, value: ipAddress },
+    ipv6Address && ipv6Address !== ipAddress && { label: detectorText.ipMetricLabels.ipv6, value: ipv6Address },
+    ipv4Address && ipv4Address !== ipAddress && { label: detectorText.ipMetricLabels.ipv4, value: ipv4Address },
     primaryIpSource.asn && { label: detectorText.ipMetricLabels.asn, value: primaryIpSource.asn },
     (primaryIpSource.org || primaryIpSource.isp) && { label: detectorText.ipMetricLabels.asnOwner, value: primaryIpSource.org || primaryIpSource.isp },
     primaryIpSource.isp && { label: detectorText.ipMetricLabels.company, value: primaryIpSource.isp },
@@ -619,7 +663,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
   return (
     <section className="mx-auto p-0">
       <div className="sticky top-[72px] z-40 py-4">
-        <div className="mx-auto flex max-w-[1120px] flex-col items-center gap-3 pb-2 md:flex-row md:justify-center md:gap-10 xl:max-w-[1280px]">
+        <div className="mx-auto flex max-w-[1120px] flex-col items-center gap-3 pb-2 md:flex-row md:justify-center md:gap-10 xl:max-w-[1280px] min-[1800px]:max-w-[1560px] min-[2400px]:max-w-[1800px]">
           {copy.cardTags.map((title, index) => [title, ["bg-[#d97757]", "bg-red-500", "bg-emerald-500"][index]] as const).map(([title, color]) => (
             <div key={title} className="group flex items-center gap-3 text-lg font-black text-[#0b1220] md:text-2xl">
               <span className={`size-2.5 rounded-full ${color} shadow-[0_0_18px_rgba(217,119,87,0.45)]`} />
@@ -632,7 +676,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
       </div>
 
       <div className="mx-auto mt-5 w-full text-center">
-        <button type="button" onClick={() => setShowRegionPicker(true)} disabled={loading} className="h-14 w-full rounded-full bg-[#d97757] px-8 text-lg font-black text-white shadow-xl shadow-orange-900/20 transition hover:bg-[#c05f3c] disabled:opacity-60 md:w-auto md:min-w-[360px]">
+        <button type="button" onClick={() => setShowRegionPicker(true)} disabled={loading} className="h-14 w-full cursor-pointer rounded-full bg-[#d97757] px-8 text-lg font-black text-white shadow-xl shadow-orange-900/20 transition hover:bg-[#c05f3c] disabled:cursor-not-allowed disabled:opacity-60 md:w-auto md:min-w-[360px]">
           {loading ? copy.loadingText : copy.idleCta}
         </button>
         <div className="relative mt-10 text-center font-black">
@@ -658,7 +702,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
           </div>
           {showSharePoster && (
             <>
-              <button type="button" onClick={() => void openPoster()} disabled={!canShareReport} className="mt-5 rounded-full bg-[#0b1220] px-8 py-4 text-base font-black text-white shadow-xl shadow-slate-950/20 transition hover:bg-[#d97757] disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-400 disabled:shadow-none md:px-10 md:py-5 md:text-lg">
+              <button type="button" onClick={() => void openPoster()} disabled={!canShareReport} className="mt-5 cursor-pointer rounded-full bg-[#0b1220] px-8 py-4 text-base font-black text-white shadow-xl shadow-slate-950/20 transition hover:bg-[#d97757] disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-400 disabled:shadow-none md:px-10 md:py-5 md:text-lg">
                 {shareCountdown ? copy.shareAfter(shareCountdown) : canShareReport ? copy.shareReport : copy.shareReady}
               </button>
               <p className="mt-3 text-sm font-bold text-stone-500 md:text-base">{copy.shareHint}</p>
@@ -684,8 +728,8 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
         </div>
       </div>
 
-      {showRegionPicker && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 p-4" onClick={() => setShowRegionPicker(false)}>
+      {showRegionPicker && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] grid place-items-center bg-black/45 p-4" onClick={() => setShowRegionPicker(false)}>
           <div className="relative z-[10000] w-full max-w-md rounded-[2rem] border border-stone-200 bg-white p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
             <div className="flex items-center justify-between gap-4">
               <div>
@@ -703,16 +747,17 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
                 </button>
               ))}
             </div>
-            <button type="button" onClick={() => { setShowRegionPicker(false); void runCheck(); }} className="mt-5 h-12 w-full rounded-full bg-[#d97757] font-black text-white shadow-lg shadow-orange-900/15">
+            <button type="button" onClick={() => { setShowRegionPicker(false); void runCheck(); }} className="mt-5 h-12 w-full cursor-pointer rounded-full bg-[#d97757] font-black text-white shadow-lg shadow-orange-900/15">
               {copy.startCheck}
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {showSharePoster && posterUrl && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 p-3 backdrop-blur-sm sm:p-4" onClick={() => setPosterUrl(null)}>
-          <div className="relative flex max-h-[92vh] w-full max-w-full flex-col overflow-y-auto rounded-[1.5rem] bg-white p-3 shadow-2xl md:max-w-[min(1120px,92vw)] md:rounded-[2rem] md:p-5" onClick={(event) => event.stopPropagation()}>
+      {showSharePoster && posterUrl && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] grid place-items-center bg-black/55 p-3 backdrop-blur-sm sm:p-4" onClick={() => setPosterUrl(null)}>
+          <div className="relative flex max-h-[92vh] w-full max-w-full flex-col overflow-y-auto rounded-[1.5rem] bg-white p-3 shadow-2xl md:max-w-[min(656px,92vw)] md:rounded-[2rem] md:p-5 xl:max-w-[min(720px,92vw)] 2xl:max-w-[min(960px,92vw)] min-[1800px]:max-w-[min(960px,92vw)]" onClick={(event) => event.stopPropagation()}>
             {copyToast && (
               <div className="absolute inset-0 z-20 hidden place-items-center bg-white/55 backdrop-blur-sm md:grid">
                 <div className="rounded-[2rem] bg-[#0b1220] px-12 py-8 text-center text-3xl font-black text-white shadow-2xl">
@@ -721,7 +766,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
               </div>
             )}
             <div className="flex items-center justify-between gap-4">
-              <h3 className="font-black text-[#0b1220]">检测报告海报</h3>
+              <h3 className="text-xl font-black text-[#0b1220]">Claude 环境风险报告</h3>
               <button type="button" onClick={() => setPosterUrl(null)} aria-label={copy.close} className="grid size-11 place-items-center rounded-full bg-stone-100 text-stone-600 transition hover:bg-stone-200">
                 <svg viewBox="0 0 24 24" className="size-7" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
               </button>
@@ -729,32 +774,31 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
             <div className="my-3 w-full rounded-2xl bg-[#0b1220] px-1.5 py-4 text-center font-black leading-tight tracking-[-0.05em] text-white shadow-lg shadow-slate-950/15 text-[clamp(11px,3.7vw,28px)] whitespace-nowrap md:my-4 md:px-2 md:text-3xl">
               分享到朋友圈，让朋友少踩 <span className="text-[#f4a261]">Claude 封号</span> 的坑
             </div>
-            <div className="grid gap-4 md:grid-cols-[minmax(320px,1fr)_minmax(260px,420px)] md:items-start">
-              <aside className="hidden rounded-3xl border border-stone-200 bg-white p-4 md:flex md:flex-col">
-                <div className="text-xl font-black text-[#0b1220]">AI 官方订阅代充</div>
-                <div className="mt-3 w-full rounded-2xl bg-[#f4a261] px-3 py-3 text-center font-black tracking-[-0.05em] text-[#0b1220] shadow-sm text-[clamp(16px,2vw,30px)] whitespace-nowrap">质保 30 天不掉订阅，掉订阅，按天退差价</div>
-                <div className="mt-3 flex flex-col gap-2">
+            <div className="grid w-full gap-4 md:grid-cols-2 md:items-center">
+              <aside className="hidden overflow-hidden rounded-[1.5rem] bg-[#f7f2ea] p-4 shadow-sm ring-1 ring-stone-200 md:block md:h-[54vh] 2xl:h-[58vh] min-[1800px]:h-[620px] min-[2400px]:!h-[560px]">
+                <div className="grid h-[calc(54vh-2rem)] grid-rows-4 gap-3 2xl:h-[calc(58vh-2rem)] min-[1800px]:h-[588px] min-[2400px]:!h-[528px]">
+                  <div className="flex min-h-0 flex-col items-center justify-center overflow-hidden rounded-2xl bg-red-600 px-2 py-2 text-center font-black leading-tight tracking-[-0.08em] text-white shadow-lg shadow-red-900/20 text-[clamp(16px,2.24vw,30px)] 2xl:text-[clamp(20px,2.8vw,38px)] min-[2400px]:text-[30px]">
+                    <div className="whitespace-nowrap">质保30天不掉订阅</div>
+                    <div className="whitespace-nowrap">掉订阅，按天退差价</div>
+                  </div>
                   {[
-                    ["/logos/openai.svg", "ChatGPT Plus 官方代充"],
-                    ["/logos/openai.svg", "ChatGPT Pro 5x 官方代充"],
-                    ["/logos/openai.svg", "ChatGPT Pro 20x 官方代充"],
-                    ["/logos/claude.svg", "Claude Pro 官方代充"],
-                    ["/logos/claude.svg", "Claude Max 5X 官方代充"],
-                    ["/logos/claude.svg", "Claude Max 20X 官方代充"],
-                    ["/logos/grok.svg", "Grok Super 官方代充（1个月）"],
-                    ["/logos/grok.svg", "Grok Super 官方代充（2个月）"],
+                    ["/logos/openai.svg", "ChatGPT 官方代充"],
+                    ["/logos/claude.svg", "Claude 官方代充"],
+                    ["/logos/grok.svg", "Grok Super 官方代充"],
                   ].map(([icon, title]) => (
-                    <a key={title} href="https://shop.apiya.ai/" target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-2xl bg-stone-50 px-3 py-2.5 text-base font-black text-[#0b1220] ring-1 ring-stone-100 transition hover:bg-orange-50 hover:text-[#c05f3c]">
-                      <img src={icon} alt="" className="size-6 shrink-0" />
-                      <span className="truncate">{title}</span>
+                    <a key={title} href="https://shop.apiya.ai/" target="_blank" rel="noreferrer" className="min-h-0 overflow-hidden rounded-2xl bg-white px-4 py-1 text-center font-black text-[#0b1220] shadow-sm ring-1 ring-stone-100 transition hover:bg-orange-50 hover:text-[#c05f3c]">
+                    <span className="flex h-full min-h-0 flex-col items-center justify-center gap-0.5 overflow-hidden">
+                      <img src={icon} alt="" className="size-7 shrink-0 2xl:size-9" />
+                        <span className="text-2xl leading-tight 2xl:text-3xl min-[2400px]:text-2xl">{title}</span>
+                      </span>
                     </a>
                   ))}
                 </div>
               </aside>
-              <div className="flex items-center justify-center p-0 md:p-0">
+              <div className="flex items-center justify-center p-0 md:overflow-hidden md:rounded-[1.5rem] md:bg-white md:p-4 md:shadow-sm md:ring-1 md:ring-stone-100">
                 <img src={posterUrl} alt="Check Claude 检测报告海报" className="h-auto max-h-[48vh] w-auto max-w-full rounded-[1.5rem] object-contain md:hidden" />
-                <button type="button" onClick={() => void copyPoster()} className="hidden rounded-[1.5rem] bg-transparent p-0 md:block">
-                  <img src={posterUrl} alt="Check Claude 检测报告海报" className="h-auto w-auto max-w-full rounded-[1.5rem] object-contain md:max-h-[68vh]" />
+                <button type="button" onClick={() => void copyPoster()} className="hidden overflow-hidden rounded-[1.25rem] bg-transparent p-0 md:block md:h-[calc(54vh-2rem)] 2xl:h-[calc(58vh-2rem)] min-[1800px]:h-[588px] min-[2400px]:!h-[528px]">
+                  <img src={posterUrl} alt="Check Claude 检测报告海报" className="h-full w-auto max-w-full rounded-[1.25rem] object-contain" />
                 </button>
               </div>
             </div>
@@ -768,7 +812,8 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
               <button type="button" onClick={() => void copyPoster()} className="hidden rounded-full bg-[#0b1220] px-4 py-3 text-sm font-black text-white md:block">复制海报，到剪贴板</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   );

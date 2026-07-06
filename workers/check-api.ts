@@ -1,6 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import { evaluateAccess } from "@/lib/detection/scoring";
-import type { IpIntelSource, IpIntelligence, RegionCode } from "@/lib/detection/types";
+import { evaluateAccess } from "../src/lib/detection/scoring";
+import type { IpIntelSource, IpIntelligence, RegionCode } from "../src/lib/detection/types";
+
+const corsHeaders = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "GET, OPTIONS",
+  "access-control-allow-headers": "content-type, accept-language, user-agent",
+};
 
 function parseAcceptLanguage(value: string | null) {
   return (value ?? "")
@@ -18,7 +23,7 @@ async function fetchJson(url: string) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 1800);
   try {
-    const response = await fetch(url, { cache: "no-store", signal: controller.signal, headers: { "user-agent": "CheckCC.org IP intelligence" } });
+    const response = await fetch(url, { signal: controller.signal, headers: { "user-agent": "CheckCC.org IP intelligence" } });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return await response.json();
   } finally {
@@ -30,7 +35,7 @@ async function fetchText(url: string) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 1800);
   try {
-    const response = await fetch(url, { cache: "no-store", signal: controller.signal, headers: { "user-agent": "CheckCC.org IP intelligence" } });
+    const response = await fetch(url, { signal: controller.signal, headers: { "user-agent": "CheckCC.org IP intelligence" } });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return await response.text();
   } finally {
@@ -39,7 +44,7 @@ async function fetchText(url: string) {
 }
 
 async function getIpIntelligence(headers: Headers): Promise<IpIntelligence> {
-  const cfCountry = headers.get("cf-ipcountry") || headers.get("x-vercel-ip-country") || null;
+  const cfCountry = headers.get("cf-ipcountry") || null;
   const cfIp = headers.get("cf-connecting-ip") || headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
   const sources: IpIntelSource[] = [];
 
@@ -85,48 +90,60 @@ async function getIpIntelligence(headers: Headers): Promise<IpIntelligence> {
   };
 }
 
-export async function GET(req: NextRequest) {
-  const url = new URL(req.url);
-  const region = pickRegion(url.searchParams.get("region"));
-  const headers = req.headers;
-  const ipIntelligence = await getIpIntelligence(headers);
-  const country = headers.get("x-vercel-ip-country") || headers.get("cf-ipcountry") || null;
-  const timezone = headers.get("x-vercel-ip-timezone") || null;
-  const userAgent = headers.get("user-agent") || null;
-  const languages = parseAcceptLanguage(headers.get("accept-language"));
-
-  const result = evaluateAccess({
-    region,
-    country,
-    timezone,
-    languages,
-    locale: languages[0] ?? null,
-    userAgent,
-    source: "server",
-  });
-  const chinaIpRisk = ipIntelligence.warnings.some((item) => item.includes("中国大陆 IP"));
-  const adjustedResult = chinaIpRisk
-    ? {
-        ...result,
-        score: Math.max(result.score, 88),
-        status: "restricted" as const,
-        matchedRegion: "cn" as const,
-        signals: [
-          ...result.signals,
-          { id: "ipCountryRisk", label: "IP 风险国家", value: "中国大陆 IP", score: 28, weight: 28, contribution: 28, source: "server" as const },
-          { id: "claudeAccessRisk", label: "Claude 访问风险", value: "访问和订阅风险极高", score: 20, weight: 20, contribution: 20, source: "server" as const },
-        ],
-      }
-    : result;
-
-  return NextResponse.json({
-    app: "Check Claude",
-    domain: "checkcc.org",
-    region,
-    detectedCountry: country,
-    detectedTimezone: timezone,
-    ipIntelligence,
-    disclaimer: "检测结果仅供参考。Claude 可用性、订阅和 API 支持状态可能随官方政策变化。付款前请再次确认官方支持列表。",
-    ...adjustedResult,
+function json(data: unknown, init?: ResponseInit) {
+  return new Response(JSON.stringify(data), {
+    ...init,
+    headers: { "content-type": "application/json; charset=utf-8", ...corsHeaders, ...init?.headers },
   });
 }
+
+export default {
+  async fetch(req: Request) {
+    if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+    if (req.method !== "GET") return json({ error: "Method Not Allowed" }, { status: 405 });
+
+    const url = new URL(req.url);
+    const region = pickRegion(url.searchParams.get("region"));
+    const headers = req.headers;
+    const ipIntelligence = await getIpIntelligence(headers);
+    const country = headers.get("cf-ipcountry") || null;
+    const timezone = null;
+    const userAgent = headers.get("user-agent") || null;
+    const languages = parseAcceptLanguage(headers.get("accept-language"));
+
+    const result = evaluateAccess({
+      region,
+      country,
+      timezone,
+      languages,
+      locale: languages[0] ?? null,
+      userAgent,
+      source: "server",
+    });
+    const chinaIpRisk = ipIntelligence.warnings.some((item) => item.includes("中国大陆 IP"));
+    const adjustedResult = chinaIpRisk
+      ? {
+          ...result,
+          score: Math.max(result.score, 88),
+          status: "restricted" as const,
+          matchedRegion: "cn" as const,
+          signals: [
+            ...result.signals,
+            { id: "ipCountryRisk", label: "IP 风险国家", value: "中国大陆 IP", score: 28, weight: 28, contribution: 28, source: "server" as const },
+            { id: "claudeAccessRisk", label: "Claude 访问风险", value: "访问和订阅风险极高", score: 20, weight: 20, contribution: 20, source: "server" as const },
+          ],
+        }
+      : result;
+
+    return json({
+      app: "Check Claude",
+      domain: "checkcc.org",
+      region,
+      detectedCountry: country,
+      detectedTimezone: timezone,
+      ipIntelligence,
+      disclaimer: "检测结果仅供参考。Claude 可用性、订阅和 API 支持状态可能随官方政策变化。付款前请再次确认官方支持列表。",
+      ...adjustedResult,
+    });
+  },
+};

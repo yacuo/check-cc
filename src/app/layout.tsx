@@ -7,19 +7,7 @@ export const metadata: Metadata = {
     default: "Check Claude｜Claude 环境检测、封号风险与运行环境检查",
     template: "%s｜Check Claude",
   },
-  description: "Claude 可用地区检测工具。开通 Claude Pro、Max 或 API 前，检查浏览器语言、系统时区、网络节点、DNS/IP 地区、支付风险和 Claude 封号风险。",
-  keywords: [
-    "Claude 环境检测",
-    "Claude 封号",
-    "Claude 解封",
-    "Claude 测评",
-    "Claude 运行环境检查",
-    "Claude 可用地区",
-    "Claude 国家检测",
-    "Claude Pro 支付失败",
-    "Claude API 地区限制",
-    "Claude 风控检测",
-  ],
+  description: "CheckCC.org 是 Claude 环境检测和封号风险检测工具，帮助用户检查 IP 地区、系统时区、浏览器语言、设备指纹、网络出口、订阅支付和 Claude API 可用性风险。",
   alternates: {
     canonical: "/",
     languages: {
@@ -38,7 +26,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Check Claude｜Claude 环境检测与可用地区检查",
-    description: "开通 Claude 前先检测地区、网络和浏览器环境，避免订阅后不可用。",
+    description: "开通 Claude 前先检测 IP 地区、网络出口、浏览器语言、系统时区和订阅支付风险，避免账号受限或订阅不可用。",
   },
   robots: {
     index: true,
