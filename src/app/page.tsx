@@ -1,26 +1,25 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Detector } from "@/components/detector/Detector";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteFrame } from "@/components/layout/SiteFrame";
 import { messages, type LocaleCode } from "@/i18n/messages";
 
 export const metadata: Metadata = {
-  title: "Claude 环境检测｜Claude 封号风险、运行环境检查与可用地区检测",
-  description: "CheckCC.org 聚合 Claude 封号原因、为什么封账号、封禁前异常信号、封号机制、风控规则、高风险环境判断、账号受限解封、封号退款申请、Claude 账号注册、API 申请、Claude Code 和 Claude Pro 订阅环境检测。",
+  title: "检查 Claude 运行环境和封号风险",
+  description: "独家 AI 环境指纹引擎，综合扫描 Claude 运行环境、地区画像与账号风险",
 };
 
 const pageMax = "mx-auto w-full max-w-[1440px] px-5 md:px-8 2xl:max-w-[1536px] min-[1800px]:max-w-[1760px] min-[1920px]:max-w-[1920px] min-[2400px]:max-w-[2200px]";
 
-const faqArticleSlugs = [
-  "claude-feng-hao",
-  "claude-feng-hao-yuan-yin",
-  "claude-feng-hao-ji-zhi",
-  "claude-feng-hao-jie-feng",
-  "claude-feng-hao-tui-kuan",
-  "claude-shen-qing",
-  "claude-api-shen-qing",
-  "claude-code-shen-qing",
+const faqLinks = [
+  "https://checkcc.org/claude-feng-hao",
+  "https://checkcc.org/claude-feng-hao-yuan-yin",
+  "https://checkcc.org/claude-feng-hao-ji-zhi",
+  "https://checkcc.org/claude-feng-hao-jie-feng",
+  "https://checkcc.org/claude-feng-hao-tui-kuan",
+  "https://checkcc.org/claude-shen-qing",
+  "https://checkcc.org/claude-api-shen-qing",
+  "https://checkcc.org/claude-code-shen-qing",
 ];
 
 const jsonLd = {
@@ -65,6 +64,14 @@ export function HomeContent({ locale = "zh" }: { locale?: LocaleCode }) {
           <p className="mx-auto mt-7 max-w-[1320px] text-xl font-bold leading-8 text-stone-700 md:text-2xl 2xl:max-w-[1440px] min-[1800px]:max-w-[1600px]">
             {copy.hero.subtitle}
           </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <a href="https://checkcc.org" target="_blank" rel="noreferrer" className="rounded-full bg-[#0b1220] px-7 py-3 text-base font-black text-white shadow-xl shadow-slate-950/15 transition hover:bg-[#d97757]">
+              Live Demo: checkcc.org
+            </a>
+            <a href="https://checkcc.org" target="_blank" rel="noreferrer" className="rounded-full border border-stone-300 bg-white/80 px-7 py-3 text-base font-black text-[#0b1220] transition hover:border-[#d97757] hover:text-[#d97757]">
+              Official Site
+            </a>
+          </div>
 
         </div>
       </section>
@@ -93,6 +100,14 @@ export function HomeContent({ locale = "zh" }: { locale?: LocaleCode }) {
             </div>
           </div>
         </article>
+      </section>
+
+      <section className={`${pageMax} mt-16`}>
+        <a href="https://checkcc.org" target="_blank" rel="noreferrer" className="block rounded-[2rem] border border-[#d97757]/30 bg-[#fff4eb] p-6 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl md:p-8">
+          <div className="text-sm font-black uppercase tracking-[0.24em] text-[#d97757]">Official Website</div>
+          <div className="mt-3 text-2xl font-black text-[#0b1220] md:text-4xl">Use the hosted version at checkcc.org</div>
+          <p className="mt-4 text-base font-semibold leading-7 text-stone-600">Open-source self-hosting is available. The official hosted version is maintained at checkcc.org.</p>
+        </a>
       </section>
 
       <section id="seo-content" className={`${pageMax} mt-20`}>
@@ -155,11 +170,10 @@ export function HomeContent({ locale = "zh" }: { locale?: LocaleCode }) {
         <h2 className="text-center text-3xl font-black md:text-5xl">{copy.faq.title}</h2>
         <div className="mt-10 grid gap-4 lg:grid-cols-2">
           {copy.faq.items.map(([question, answer], index) => (
-            <Link key={question} href={`/${faqArticleSlugs[index] ?? "claude"}`} className="rounded-[2rem] border border-stone-200 bg-white/80 p-6 transition hover:-translate-y-0.5 hover:border-[#d97757]/40 hover:bg-orange-50 hover:shadow-xl hover:shadow-stone-900/10">
+            <a key={question} href={faqLinks[index] ?? "https://checkcc.org"} target="_blank" rel="noreferrer" className="rounded-[2rem] border border-stone-200 bg-white/80 p-6 transition hover:-translate-y-0.5 hover:border-[#d97757]/40 hover:bg-orange-50 hover:shadow-xl hover:shadow-stone-900/10">
               <h3 className="text-lg font-black">{question}</h3>
               <p className="mt-3 leading-7 text-stone-600">{answer}</p>
-              <span className="mt-4 inline-flex text-sm font-black text-[#d97757]">阅读全文</span>
-            </Link>
+            </a>
           ))}
         </div>
       </section>

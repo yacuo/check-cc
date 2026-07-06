@@ -31,7 +31,6 @@ export function SiteFrame({ children }: { children: ReactNode }) {
   const navItems = [
     { href: "#seo-content", label: copy.nav.projects },
     { href: "#faq", label: copy.nav.faq },
-    { href: "/claude", label: copy.nav.tutorials },
   ];
 
   useEffect(() => {
@@ -57,6 +56,10 @@ export function SiteFrame({ children }: { children: ReactNode }) {
           {navItems.map((item) => (
             <a key={item.href} href={item.href} onClick={() => setOpen(false)} className="hover:text-[#d97757]">{item.label}</a>
           ))}
+          <a href="https://github.com/yacuo/checkcc" target="_blank" rel="noreferrer" onClick={() => setOpen(false)} className="flex items-center gap-2 hover:text-[#d97757]">
+            <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden="true"><path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.589 2 12.253c0 4.53 2.865 8.371 6.839 9.727.5.094.683-.222.683-.494 0-.244-.009-.89-.014-1.747-2.782.62-3.369-1.375-3.369-1.375-.455-1.185-1.11-1.5-1.11-1.5-.908-.636.069-.623.069-.623 1.004.073 1.532 1.057 1.532 1.057.892 1.568 2.341 1.115 2.91.853.091-.662.35-1.115.636-1.371-2.221-.259-4.555-1.138-4.555-5.066 0-1.119.39-2.034 1.03-2.751-.103-.26-.446-1.302.098-2.714 0 0 .84-.276 2.75 1.05A9.37 9.37 0 0 1 12 6.957a9.36 9.36 0 0 1 2.504.345c1.909-1.326 2.747-1.05 2.747-1.05.546 1.412.203 2.454.1 2.714.641.717 1.029 1.632 1.029 2.751 0 3.938-2.337 4.804-4.566 5.058.359.317.679.943.679 1.9 0 1.371-.012 2.477-.012 2.813 0 .274.18.593.688.492C19.138 20.62 22 16.782 22 12.253 22 6.589 17.523 2 12 2Z" /></svg>
+            GitHub
+          </a>
           <div className="border-t border-stone-200 pt-4">
             <div className="mb-3 text-xs font-black text-stone-400">{copy.nav.language}</div>
             <div className="flex flex-col gap-3">
@@ -87,6 +90,9 @@ export function SiteFrame({ children }: { children: ReactNode }) {
                 {navItems.map((item) => (
                   <a key={item.href} href={item.href} className="cursor-pointer rounded-full bg-white px-4 py-2 text-stone-700 ring-1 ring-stone-200 transition hover:text-[#d97757] hover:ring-[#d97757]/40">{item.label}</a>
                 ))}
+                <a href="https://github.com/yacuo/checkcc" target="_blank" rel="noreferrer" aria-label="GitHub" className="grid size-9 place-items-center rounded-full bg-white text-[#0b1220] ring-1 ring-stone-200 transition hover:text-[#d97757] hover:ring-[#d97757]/40">
+                  <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden="true"><path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.589 2 12.253c0 4.53 2.865 8.371 6.839 9.727.5.094.683-.222.683-.494 0-.244-.009-.89-.014-1.747-2.782.62-3.369-1.375-3.369-1.375-.455-1.185-1.11-1.5-1.11-1.5-.908-.636.069-.623.069-.623 1.004.073 1.532 1.057 1.532 1.057.892 1.568 2.341 1.115 2.91.853.091-.662.35-1.115.636-1.371-2.221-.259-4.555-1.138-4.555-5.066 0-1.119.39-2.034 1.03-2.751-.103-.26-.446-1.302.098-2.714 0 0 .84-.276 2.75 1.05A9.37 9.37 0 0 1 12 6.957a9.36 9.36 0 0 1 2.504.345c1.909-1.326 2.747-1.05 2.747-1.05.546 1.412.203 2.454.1 2.714.641.717 1.029 1.632 1.029 2.751 0 3.938-2.337 4.804-4.566 5.058.359.317.679.943.679 1.9 0 1.371-.012 2.477-.012 2.813 0 .274.18.593.688.492C19.138 20.62 22 16.782 22 12.253 22 6.589 17.523 2 12 2Z" /></svg>
+                </a>
                 <div className="relative">
                   <button type="button" aria-expanded={localeOpen} onClick={() => setLocaleOpen((value) => !value)} className="flex cursor-pointer items-center gap-2 rounded-full bg-white px-4 py-2 text-[#0b1220] ring-1 ring-stone-200 transition hover:ring-[#d97757]/40">
                     <span>{localeItems.find((item) => item.value === activeLocale)?.label}</span>

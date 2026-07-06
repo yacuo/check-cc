@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { SignalUnlockModal } from "./SignalUnlockModal";
 import { evaluateAccess } from "@/lib/detection/scoring";
 import type { CheckResponse, RegionCode, SignalResult } from "@/lib/detection/types";
 import { messages, type LocaleCode } from "@/i18n/messages";
@@ -79,19 +78,10 @@ function normalizeRegion(code: TargetRegion): RegionCode {
   return code === "hk" ? "auto" : code;
 }
 
-function getCheckApiUrl(region: RegionCode, lang: "zh" | "en") {
-  const endpoint = process.env.NEXT_PUBLIC_CHECK_API_URL || "https://api.checkcc.org/check";
-  const url = new URL(endpoint);
-  url.searchParams.set("region", region);
-  url.searchParams.set("lang", lang === "en" ? "en" : "zh-CN");
-  url.searchParams.set("t", String(Date.now()));
-  return url.toString();
-}
-
 const scanSteps: ScanStep[] = [
   { id: "language", title: "浏览器语言版本检测", desc: "读取 navigator.languages、Accept-Language 和 Intl locale" },
   { id: "timezone", title: "系统时区与地区环境检测", desc: "检查系统时区、UTC 偏移和重点受限地区时区" },
-  { id: "network", title: "网络节点与 IP 地区估算", desc: "请求服务端接口，估算网络出口国家和部署平台地区头" },
+  { id: "network", title: "网络节点与 IP 地区估算", desc: "可选服务端接口，估算网络出口国家和部署平台地区头" },
   { id: "dns", title: "DNS / 代理一致性风险提示", desc: "提示 DNS、代理、节点、账单地区不一致导致的风控风险" },
   { id: "runtime", title: "Claude 运行环境检查", desc: "分析 User-Agent、设备线索、浏览器环境和应用 WebView" },
   { id: "risk", title: "Claude 封号与付款风险评分", desc: "汇总 Claude Web、Pro/Max、API 和支付风险" },
@@ -198,26 +188,6 @@ function detectDeviceName(ua: string, platform: string | undefined, text: Detect
   return os;
 }
 
-function loadBrowserPing0(): Promise<BrowserIpIntel | null> {
-  return new Promise((resolve) => {
-    const callbackName = `checkccPing0${Date.now()}${Math.random().toString(36).slice(2)}`;
-    const script = document.createElement("script");
-    const timer = window.setTimeout(() => cleanup(null), 2500);
-    const cleanup = (result: BrowserIpIntel | null) => {
-      window.clearTimeout(timer);
-      script.remove();
-      delete (window as unknown as Record<string, unknown>)[callbackName];
-      resolve(result);
-    };
-    (window as unknown as Record<string, (...args: string[]) => void>)[callbackName] = (ip, location, asn, org) => {
-      cleanup({ ip, location, country: location?.split(/\s+/)[0] || location, asn, org });
-    };
-    script.onerror = () => cleanup(null);
-    script.src = `https://ping0.cc/geo/jsonp/${callbackName}`;
-    document.body.appendChild(script);
-  });
-}
-
 function collectBrowserSignals(region: RegionCode, text: DetectorLocaleText) {
   const languages = navigator.languages?.length ? [...navigator.languages] : [navigator.language].filter(Boolean);
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || null;
@@ -303,229 +273,35 @@ function signalTone(signal: SignalView) {
   return "border-emerald-300 bg-emerald-50 text-emerald-700";
 }
 
-function SignalList({ signals, extraCards = [], onUnlockModalChange }: { signals: SignalView[]; extraCards?: Array<{ label: string; value: string }>; onUnlockModalChange?: (open: boolean) => void }) {
-  const [showUnlockModal, setShowUnlockModal] = useState(false);
-  const [unlocked, setUnlocked] = useState(false);
-  const lockLimit = 20;
+function SignalList({ signals, extraCards = [] }: { signals: SignalView[]; extraCards?: Array<{ label: string; value: string }> }) {
   const items = [
     ...signals.map((signal) => ({ type: "signal" as const, key: `${signal.source}-${signal.id}`, signal })),
     ...extraCards.map((card) => ({ type: "card" as const, key: `card-${card.label}`, card })),
   ];
-  const shouldLock = items.length > lockLimit && !unlocked;
-  const visibleItems = shouldLock ? items.slice(0, lockLimit) : items;
-  const hiddenCount = items.length - visibleItems.length;
-  const openUnlockModal = () => {
-    setShowUnlockModal(true);
-    onUnlockModalChange?.(true);
-  };
-  const closeUnlockModal = () => {
-    setShowUnlockModal(false);
-    onUnlockModalChange?.(false);
-  };
 
   return (
-    <>
-      <div className="grid grid-cols-2 gap-2 md:grid-cols-2 lg:min-h-[216px] lg:content-between xl:grid-cols-3 2xl:grid-cols-4">
-        {shouldLock && (
-          <button type="button" onClick={openUnlockModal} className="relative col-span-2 overflow-hidden rounded-xl border border-stone-300 bg-stone-100 p-3 text-left transition hover:-translate-y-0.5 hover:bg-stone-200 md:hidden">
-            <div className="grid grid-cols-2 gap-2">
-              {Array.from({ length: Math.min(hiddenCount, 6) }, (_, itemIndex) => (
-                <div key={itemIndex} className="rounded-xl border border-stone-300 bg-white/70 px-3 py-2 blur-[3px]">
-                  <div className="h-4 w-3/4 rounded bg-stone-400" />
-                  <div className="mt-2 h-3 w-1/2 rounded bg-stone-300" />
-                </div>
-              ))}
+    <div className="grid grid-cols-2 gap-2 md:grid-cols-2 lg:min-h-[216px] lg:content-between xl:grid-cols-3 2xl:grid-cols-4">
+      {items.map((item) => item.type === "signal" ? (
+        <div key={item.key} className={`rounded-xl border px-3 py-2 transition ${signalTone(item.signal)}`}>
+          <div className="flex min-w-0 items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-semibold text-[#0b1220]">{item.signal.label}</div>
+              <div className="truncate text-xs opacity-75">{item.signal.value}</div>
             </div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-200/80 px-4 text-center backdrop-blur-[2px]">
-              <div className="w-full text-base font-black text-[#0b1220]">还有 {hiddenCount} 个高风险封号检测指标已隐藏</div>
-              <div className="mt-2 text-sm font-semibold leading-5 text-stone-700">完成反爬虫人机验证后查看完整报告</div>
-            </div>
-          </button>
-        )}
-
-        {visibleItems.map((item) => item.type === "signal" ? (
-          <div key={item.key} className={`rounded-xl border px-3 py-2 transition ${signalTone(item.signal)}`}>
-            <div className="flex min-w-0 items-center justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-semibold text-[#0b1220]">{item.signal.label}</div>
-                <div className="truncate text-xs opacity-75">{item.signal.value}</div>
-              </div>
-              <div className="shrink-0 rounded-full bg-white/70 px-2.5 py-1 text-xs font-black">{item.signal.state === "pending" ? "--" : `+${item.signal.contribution}`}</div>
-            </div>
+            <div className="shrink-0 rounded-full bg-white/70 px-2.5 py-1 text-xs font-black">{item.signal.state === "pending" ? "--" : `+${item.signal.contribution}`}</div>
           </div>
-        ) : (
-          <div key={item.key} className="rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-emerald-700 transition">
-            <div className="truncate text-sm font-semibold text-[#0b1220]">{item.card.label}</div>
-            <div className="truncate text-xs opacity-75">{item.card.value}</div>
-          </div>
-        ))}
-
-        {shouldLock && (
-          <button type="button" onClick={openUnlockModal} className="relative col-span-2 hidden overflow-hidden rounded-xl border border-stone-300 bg-stone-100 p-3 text-left transition hover:-translate-y-0.5 hover:bg-stone-200 md:block md:col-span-2 xl:col-span-3 2xl:col-span-4">
-            <div className="grid grid-cols-2 gap-2 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-              {Array.from({ length: hiddenCount }, (_, itemIndex) => (
-                <div key={itemIndex} className={`rounded-xl border border-stone-300 bg-white/70 px-3 py-2 blur-[3px] ${itemIndex >= 6 ? "hidden md:block" : ""}`}>
-                  <div className="h-4 w-3/4 rounded bg-stone-400" />
-                  <div className="mt-2 h-3 w-1/2 rounded bg-stone-300" />
-                </div>
-              ))}
-            </div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-200/80 px-4 text-center backdrop-blur-[2px]">
-              <div className="w-full text-base font-black text-[#0b1220] md:text-3xl lg:text-5xl lg:leading-tight">还有 {hiddenCount} 个高风险封号检测指标已隐藏</div>
-              <div className="mt-3 w-full max-w-none text-base font-semibold leading-7 text-stone-700 md:text-xl md:leading-8 lg:mt-6 lg:text-2xl lg:leading-10">深度服务器检测结果已保护，请完成反爬虫人机验证后查看完整 Claude 环境风险报告</div>
-              <span className="mt-5 rounded-full bg-[#0b1220] px-7 py-3 text-base font-black text-white shadow-lg lg:mt-8 lg:px-10 lg:py-4 lg:text-xl">完成验证，查看完整报告</span>
-            </div>
-          </button>
-        )}
-      </div>
-
-      {showUnlockModal && (
-        <SignalUnlockModal
-          hiddenCount={hiddenCount}
-          onClose={closeUnlockModal}
-          onUnlock={() => {
-            setUnlocked(true);
-            closeUnlockModal();
-          }}
-        />
-      )}
-    </>
+        </div>
+      ) : (
+        <div key={item.key} className="rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-emerald-700 transition">
+          <div className="truncate text-sm font-semibold text-[#0b1220]">{item.card.label}</div>
+          <div className="truncate text-xs opacity-75">{item.card.value}</div>
+        </div>
+      ))}
+    </div>
   );
 }
 
-function downloadDataUrl(dataUrl: string, filename: string) {
-  const link = document.createElement("a");
-  link.href = dataUrl;
-  link.download = filename;
-  link.click();
-}
-
-async function loadImage(src: string) {
-  const blob = await (await fetch(src)).blob();
-  const objectUrl = URL.createObjectURL(blob);
-  return new Promise<HTMLImageElement>((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = reject;
-    image.src = objectUrl;
-  });
-}
-
-async function createPoster(score: number, confidenceText: string, suspectedRegion: string) {
-  const posterRiskLabel = score === 0 ? "完美支持" : score >= 70 ? "封号风险" : score >= 31 ? "高危风险" : "轻度风险";
-  const canvas = document.createElement("canvas");
-  canvas.width = 720;
-  canvas.height = 1160;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
-
-  ctx.fillStyle = "#f7f2ea";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  const gradient = ctx.createRadialGradient(360, 120, 20, 360, 120, 520);
-  gradient.addColorStop(0, "rgba(217,119,87,0.36)");
-  gradient.addColorStop(1, "rgba(247,242,234,0)");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, canvas.width, 520);
-
-  ctx.font = "900 46px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
-  ctx.fillStyle = "#0b1220";
-  ctx.fillText("Check", 54, 108);
-  const checkTitleWidth = ctx.measureText("Check").width;
-  ctx.fillStyle = "#d97757";
-  ctx.fillText("Claude", 54 + checkTitleWidth + 8, 108);
-  const claudeTitleWidth = ctx.measureText("Claude").width;
-  ctx.fillStyle = "#0b1220";
-  ctx.fillText(" 环境检测报告", 54 + checkTitleWidth + claudeTitleWidth + 8, 108);
-
-  ctx.font = "800 30px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
-  ctx.fillStyle = "#57534e";
-  ctx.fillText("运行环境 · 地区画像 · 封号风险", 54, 176);
-
-  ctx.font = "700 30px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
-  ctx.fillStyle = "#d97757";
-  ctx.fillText(`${confidenceText}${suspectedRegion}环境`, 54, 250);
-
-  const ringX = 360;
-  const ringY = 455;
-  const ringRadius = 138;
-  ctx.save();
-  ctx.lineWidth = 28;
-  ctx.lineCap = "round";
-  ctx.beginPath();
-  ctx.arc(ringX, ringY, ringRadius, 0, Math.PI * 2);
-  ctx.strokeStyle = "#e7e5df";
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(ringX, ringY, ringRadius, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.max(0.01, score / 100));
-  ctx.strokeStyle = score >= 70 ? "#dc2626" : score >= 31 ? "#d97757" : "#059669";
-  ctx.stroke();
-  ctx.restore();
-
-  ctx.beginPath();
-  ctx.arc(ringX, ringY, 108, 0, Math.PI * 2);
-  ctx.fillStyle = "#fffaf3";
-  ctx.fill();
-
-  ctx.fillStyle = "#0b1220";
-  ctx.font = "900 86px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(`${score}%`, ringX, ringY - 8);
-  ctx.font = "800 28px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
-  ctx.fillStyle = "#78716c";
-  ctx.fillText("封号风险", ringX, ringY + 58);
-  ctx.textAlign = "left";
-  ctx.textBaseline = "alphabetic";
-
-  ctx.beginPath();
-  ctx.fillStyle = "#ffffff";
-  ctx.roundRect(54, 650, 612, 220, 28);
-  ctx.fill();
-  ctx.fillStyle = "#0b1220";
-  ctx.font = "900 34px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
-  ctx.fillText(posterRiskLabel, 86, 724);
-  ctx.font = "600 25px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
-  ctx.fillStyle = "#57534e";
-  ctx.fillText("风险可能由环境画像不一致、网络出口可信度偏低、", 86, 786);
-  ctx.fillText("设备指纹波动、地区信号冲突及账号异常触发", 86, 828);
-
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=${encodeURIComponent("https://checkcc.org")}`;
-  try {
-    const qr = await loadImage(qrUrl);
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    ctx.roundRect(498, 910, 150, 150, 22);
-    ctx.fill();
-    ctx.drawImage(qr, 512, 924, 122, 122);
-  } catch {
-    ctx.strokeStyle = "#d97757";
-    ctx.lineWidth = 4;
-    ctx.strokeRect(512, 924, 122, 122);
-  }
-
-  ctx.font = "900 38px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
-  ctx.fillStyle = "#0b1220";
-  ctx.fillText("Check", 54, 968);
-  const checkWidth = ctx.measureText("Check").width;
-  ctx.fillStyle = "#d97757";
-  ctx.fillText("CC", 54 + checkWidth, 968);
-  const ccWidth = ctx.measureText("CC").width;
-  ctx.fillStyle = "#0b1220";
-  ctx.fillText(".org", 54 + checkWidth + ccWidth, 968);
-  ctx.fillStyle = "#78716c";
-  ctx.font = "600 22px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
-  ctx.fillText("检查来源 · 扫码查看检测", 54, 1008);
-
-  ctx.font = "500 22px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
-  ctx.fillStyle = "#78716c";
-  ctx.textAlign = "center";
-  ctx.fillText("免责声明：结果仅供参考，不代表官方结论", 360, 1122);
-  ctx.textAlign = "left";
-
-  return canvas.toDataURL("image/png");
-}
-
-export function Detector({ lang = "zh", locale = "zh" }: Props) {
+export function Detector({ locale = "zh" }: Props) {
   const copy = messages[locale].detector;
   const detectorText = detectorLocaleText[locale];
   const [region, setRegion] = useState<TargetRegion>("auto");
@@ -535,16 +311,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [activeSignal, setActiveSignal] = useState(-1);
-  const [posterUrl, setPosterUrl] = useState<string | null>(null);
-  const [showPosterModal, setShowPosterModal] = useState(false);
-  const [posterGenerating, setPosterGenerating] = useState(false);
   const [showRegionPicker, setShowRegionPicker] = useState(false);
-  const [copyToast, setCopyToast] = useState(false);
-  const [copyToastText, setCopyToastText] = useState("已复制海报，到剪贴板");
-  const [shareCountdown, setShareCountdown] = useState<number | null>(null);
-  const [autoPosterShown, setAutoPosterShown] = useState(false);
-  const [autoShareReady, setAutoShareReady] = useState(false);
-  const [unlockModalOpen, setUnlockModalOpen] = useState(false);
 
   const rawScore = useMemo(() => Math.min(100, signalsScore(browserResult?.signals ?? [], serverResult?.signals ?? [])), [browserResult, serverResult]);
   const animatedScore = loading ? Math.round((rawScore * progress) / 100) : rawScore;
@@ -596,13 +363,6 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
     setBrowserIpIntel(null);
     setProgress(0);
     setActiveSignal(0);
-    setShareCountdown(null);
-    setPosterUrl(null);
-    setShowPosterModal(false);
-    setPosterGenerating(false);
-    setAutoPosterShown(false);
-    setAutoShareReady(false);
-    setUnlockModalOpen(false);
 
     let local: ReturnType<typeof collectBrowserSignals> | null = null;
     let remote: CheckResponse | null = null;
@@ -619,17 +379,9 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
       }
 
       if (index === 2) {
-        const [checkApi, browserIp] = await Promise.allSettled([
-          fetch(getCheckApiUrl(checkRegion, lang), { cache: "no-store" }),
-          loadBrowserPing0(),
-        ]);
-        if (checkApi.status === "fulfilled" && checkApi.value.ok) {
-          remote = (await checkApi.value.json()) as CheckResponse;
-          setServerResult(remote);
-        } else {
-          remote = null;
-        }
-        setBrowserIpIntel(browserIp.status === "fulfilled" ? browserIp.value : null);
+        remote = null;
+        setServerResult(null);
+        setBrowserIpIntel(null);
       }
 
       await animateProgress(from, to, setProgress, setActiveSignal);
@@ -638,26 +390,16 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
 
     if (!local) setBrowserResult(collectBrowserSignals(checkRegion, detectorText));
     if (!remote) {
-      const [checkApi, browserIp] = await Promise.allSettled([
-        fetch(getCheckApiUrl(checkRegion, lang), { cache: "no-store" }),
-        loadBrowserPing0(),
-      ]);
-      if (checkApi.status === "fulfilled" && checkApi.value.ok) {
-        setServerResult((await checkApi.value.json()) as CheckResponse);
-      } else {
-        setServerResult(null);
-      }
-      if (!browserIpIntel) setBrowserIpIntel(browserIp.status === "fulfilled" ? browserIp.value : null);
+      setServerResult(null);
+      if (!browserIpIntel) setBrowserIpIntel(null);
     }
 
     await animateProgress(92, 100, setProgress, setActiveSignal);
     setActiveSignal(defaultSignals.length);
     setLoading(false);
-    window.setTimeout(() => setAutoShareReady(true), 0);
+
   };
 
-  const showSharePoster = locale === "zh";
-  const canShareReport = showSharePoster && progress === 100 && !loading;
   const hasChecked = progress === 100;
   const ringActive = loading || progress > 0;
   const riskLabel = !ringActive ? detectorText.risk.waiting : !hasChecked ? detectorText.risk.checking : animatedScore === 0 ? detectorText.risk.supported : animatedScore >= 70 ? detectorText.risk.blocked : animatedScore >= 31 ? detectorText.risk.high : detectorText.risk.light;
@@ -704,75 +446,11 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
 
   ].filter(Boolean) as Array<{ label: string; value: string }> : [];
 
-  const handleUnlockModalChange = (open: boolean) => {
-    setUnlockModalOpen(open);
-    if (open) setShareCountdown(null);
-  };
-
-  const openPoster = async () => {
-    if (!canShareReport || unlockModalOpen) return;
-    setShareCountdown(null);
-    setAutoPosterShown(true);
-    setPosterUrl(null);
-    setShowPosterModal(true);
-    if (posterGenerating) return;
-    setPosterGenerating(true);
-    try {
-      const dataUrl = await createPoster(animatedScore, confidenceText, suspectedRegion);
-      if (dataUrl) setPosterUrl(dataUrl);
-    } finally {
-      setPosterGenerating(false);
-    }
-  };
-
-  const showCopiedToast = (text = "已复制海报，到剪贴板") => {
-    setCopyToastText(text);
-    setCopyToast(true);
-    window.setTimeout(() => setCopyToast(false), 1600);
-  };
-
-  const copyPoster = async () => {
-    if (!posterUrl) return;
-    const blob = await (await fetch(posterUrl)).blob();
-    await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
-    showCopiedToast("已复制海报，到剪贴板");
-  };
-
-  const copySiteLink = async () => {
-    await navigator.clipboard.writeText("Claude Code 环境风险检测\n独家 AI 环境指纹引擎，扫描运行环境、地区画像与封号风险。\nhttps://checkcc.org");
-    showCopiedToast("链接已复制");
-  };
-
   useEffect(() => {
     const openPicker = () => setShowRegionPicker(true);
     window.addEventListener("open-region-picker", openPicker);
     return () => window.removeEventListener("open-region-picker", openPicker);
   }, []);
-
-  useEffect(() => {
-    if (!showSharePoster || !autoShareReady || !canShareReport || autoPosterShown || unlockModalOpen || posterUrl) return;
-    let cancelled = false;
-    let timers: number[] = [];
-    const renderDelay = window.setTimeout(() => {
-      if (cancelled) return;
-      setShareCountdown(5);
-      timers = [
-        window.setTimeout(() => setShareCountdown(4), 1000),
-        window.setTimeout(() => setShareCountdown(3), 2000),
-        window.setTimeout(() => setShareCountdown(2), 3000),
-        window.setTimeout(() => setShareCountdown(1), 4000),
-        window.setTimeout(() => {
-          setShareCountdown(null);
-          void openPoster();
-        }, 5000),
-      ];
-    }, 300);
-    return () => {
-      cancelled = true;
-      window.clearTimeout(renderDelay);
-      timers.forEach((timer) => window.clearTimeout(timer));
-    };
-  }, [autoShareReady, canShareReport, autoPosterShown, unlockModalOpen, posterUrl]);
 
   return (
     <section className="mx-auto p-0">
@@ -814,15 +492,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
               <div className="text-2xl text-[#0b1220] md:text-3xl">{copy.idleReport}</div>
             )}
           </div>
-          {showSharePoster && (
-            <>
-              <button type="button" onClick={() => void openPoster()} disabled={!canShareReport} className="mt-5 cursor-pointer rounded-full bg-[#0b1220] px-8 py-4 text-base font-black text-white shadow-xl shadow-slate-950/20 transition hover:bg-[#d97757] disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-400 disabled:shadow-none md:px-10 md:py-5 md:text-lg">
-                {shareCountdown ? copy.shareAfter(shareCountdown) : canShareReport ? copy.shareReport : copy.shareReady}
-              </button>
-              <p className="mt-3 text-sm font-bold text-stone-500 md:text-base">{copy.shareHint}</p>
-              {shareCountdown && <p className="mt-2 text-sm font-semibold text-stone-500">{copy.generatingPoster}</p>}
-            </>
-          )}
+
         </div>
       </div>
 
@@ -837,7 +507,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
               <h3 className="text-xl font-black text-[#0b1220]">{hasChecked ? copy.signalCount(signals.length + ipMetricCards.length, true) : copy.title}</h3>
               <span className="rounded-full bg-[#fffaf3] px-3 py-1 text-xs font-bold text-stone-500">{copy.signalCount(signals.length + ipMetricCards.length, false)}</span>
             </div>
-            <div className="mt-2 md:mt-4"><SignalList signals={signals} extraCards={ipMetricCards} onUnlockModalChange={handleUnlockModalChange} /></div>
+            <div className="mt-2 md:mt-4"><SignalList signals={signals} extraCards={ipMetricCards} /></div>
           </div>
         </div>
       </div>
@@ -869,77 +539,6 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
         document.body
       )}
 
-      {showSharePoster && showPosterModal && typeof document !== "undefined" && createPortal(
-        <div className="fixed inset-0 z-[9999] grid place-items-center bg-black/55 p-3 backdrop-blur-sm sm:p-4" onClick={() => setShowPosterModal(false)}>
-          <div className="relative flex max-h-[92vh] w-full max-w-full flex-col overflow-y-auto rounded-[1.5rem] bg-white p-3 shadow-2xl md:max-w-[min(656px,92vw)] md:rounded-[2rem] md:p-5 xl:max-w-[min(720px,92vw)] 2xl:max-w-[min(960px,92vw)] min-[1800px]:max-w-[min(960px,92vw)]" onClick={(event) => event.stopPropagation()}>
-            {copyToast && (
-              <div className="absolute inset-0 z-20 hidden place-items-center bg-white/55 backdrop-blur-sm md:grid">
-                <div className="rounded-[2rem] bg-[#0b1220] px-12 py-8 text-center text-3xl font-black text-white shadow-2xl">
-                  {copyToastText}
-                </div>
-              </div>
-            )}
-            <div className="flex items-center justify-between gap-4">
-              <h3 className="text-xl font-black text-[#0b1220]">Claude 环境风险报告</h3>
-              <button type="button" onClick={() => setShowPosterModal(false)} aria-label={copy.close} className="grid size-11 place-items-center rounded-full bg-stone-100 text-stone-600 transition hover:bg-stone-200">
-                <svg viewBox="0 0 24 24" className="size-7" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
-              </button>
-            </div>
-            <div className="my-3 w-full rounded-2xl bg-[#0b1220] px-1.5 py-4 text-center font-black leading-tight tracking-[-0.05em] text-white shadow-lg shadow-slate-950/15 text-[clamp(11px,3.7vw,28px)] whitespace-nowrap md:my-4 md:px-2 md:text-3xl">
-              分享到朋友圈，让朋友少踩 <span className="text-[#f4a261]">Claude 封号</span> 的坑
-            </div>
-            <div className="grid w-full gap-4 md:grid-cols-2 md:items-center">
-              <aside className="hidden overflow-hidden rounded-[1.5rem] bg-[#f7f2ea] p-4 shadow-sm ring-1 ring-stone-200 md:block md:h-[54vh] 2xl:h-[58vh] min-[1800px]:h-[620px] min-[2400px]:!h-[560px]">
-                <div className="grid h-[calc(54vh-2rem)] grid-rows-4 gap-3 2xl:h-[calc(58vh-2rem)] min-[1800px]:h-[588px] min-[2400px]:!h-[528px]">
-                  <div className="flex min-h-0 flex-col items-center justify-center overflow-hidden rounded-2xl bg-red-600 px-2 py-2 text-center font-black leading-tight tracking-[-0.08em] text-white shadow-lg shadow-red-900/20 text-[clamp(16px,2.24vw,30px)] 2xl:text-[clamp(20px,2.8vw,38px)] min-[2400px]:text-[30px]">
-                    <div className="whitespace-nowrap">质保30天不掉订阅</div>
-                    <div className="whitespace-nowrap">掉订阅，按天退差价</div>
-                  </div>
-                  {[
-                    ["/logos/openai.svg", "ChatGPT 官方代充"],
-                    ["/logos/claude.svg", "Claude 官方代充"],
-                    ["/logos/grok.svg", "Grok Super 官方代充"],
-                  ].map(([icon, title]) => (
-                    <a key={title} href="https://shop.apiya.ai/" target="_blank" rel="noreferrer" className="min-h-0 overflow-hidden rounded-2xl bg-white px-4 py-1 text-center font-black text-[#0b1220] shadow-sm ring-1 ring-stone-100 transition hover:bg-orange-50 hover:text-[#c05f3c]">
-                    <span className="flex h-full min-h-0 flex-col items-center justify-center gap-0.5 overflow-hidden">
-                      <img src={icon} alt="" className="size-7 shrink-0 2xl:size-9" />
-                        <span className="text-2xl leading-tight 2xl:text-3xl min-[2400px]:text-2xl">{title}</span>
-                      </span>
-                    </a>
-                  ))}
-                </div>
-              </aside>
-              <div className="flex items-center justify-center p-0 md:overflow-hidden md:rounded-[1.5rem] md:bg-white md:p-4 md:shadow-sm md:ring-1 md:ring-stone-100">
-                {posterUrl ? (
-                  <>
-                    <img src={posterUrl} alt="Check Claude 检测报告海报" className="h-auto max-h-[48vh] w-auto max-w-full rounded-[1.5rem] object-contain md:hidden" />
-                    <button type="button" onClick={() => void copyPoster()} className="hidden overflow-hidden rounded-[1.25rem] bg-transparent p-0 md:block md:h-[calc(54vh-2rem)] 2xl:h-[calc(58vh-2rem)] min-[1800px]:h-[588px] min-[2400px]:!h-[528px]">
-                      <img src={posterUrl} alt="Check Claude 检测报告海报" className="h-full w-auto max-w-full rounded-[1.25rem] object-contain" />
-                    </button>
-                  </>
-                ) : (
-                  <div className="grid h-[48vh] w-full place-items-center rounded-[1.5rem] bg-stone-50 ring-1 ring-stone-100 md:h-[calc(54vh-2rem)] 2xl:h-[calc(58vh-2rem)] min-[1800px]:h-[588px] min-[2400px]:!h-[528px]">
-                    <div className="text-center">
-                      <div className="mx-auto size-10 animate-spin rounded-full border-4 border-stone-200 border-t-[#0b1220]" />
-                      <div className="mt-4 text-base font-black text-red-600">正在生成检测报告...</div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            <a href="https://shop.apiya.ai/" target="_blank" rel="noreferrer" className="mt-4 block rounded-2xl bg-red-600 px-2 py-3 text-center shadow-lg shadow-red-900/20 md:hidden">
-              <div className="whitespace-nowrap font-black tracking-[-0.04em] text-white text-[clamp(13px,4vw,22px)]">ChatGPT 和 Claude 官方 AI 账号订阅代充</div>
-              <div className="mt-1 whitespace-nowrap font-black tracking-[-0.05em] text-white/95 text-[clamp(12px,3.55vw,20px)]">质保 30 天不掉订阅，掉订阅，按天退差价</div>
-            </a>
-            <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3">
-              <button type="button" onClick={() => void copySiteLink()} className="rounded-full bg-white px-4 py-3 text-sm font-black text-[#0b1220] ring-1 ring-stone-200">复制链接</button>
-              <button type="button" onClick={() => posterUrl && downloadDataUrl(posterUrl, "check-claude-report.png")} disabled={!posterUrl} className="rounded-full bg-[#0b1220] px-4 py-3 text-sm font-black text-white ring-1 ring-[#0b1220] disabled:bg-stone-200 disabled:text-stone-400 disabled:ring-stone-200 md:bg-white md:text-[#0b1220] md:ring-stone-200">保存海报</button>
-              <button type="button" onClick={() => void copyPoster()} disabled={!posterUrl} className="hidden rounded-full bg-[#0b1220] px-4 py-3 text-sm font-black text-white disabled:bg-stone-200 disabled:text-stone-400 md:block">复制海报，到剪贴板</button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
     </section>
   );
 }
