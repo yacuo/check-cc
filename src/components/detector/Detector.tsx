@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { SignalUnlockModal } from "./SignalUnlockModal";
 import { evaluateAccess } from "@/lib/detection/scoring";
 import type { CheckResponse, RegionCode, SignalResult } from "@/lib/detection/types";
 import { messages, type LocaleCode } from "@/i18n/messages";
@@ -302,27 +303,76 @@ function signalTone(signal: SignalView) {
   return "border-emerald-300 bg-emerald-50 text-emerald-700";
 }
 
-function SignalList({ signals, extraCards = [] }: { signals: SignalView[]; extraCards?: Array<{ label: string; value: string }> }) {
+function SignalList({ signals, extraCards = [], onUnlockModalChange }: { signals: SignalView[]; extraCards?: Array<{ label: string; value: string }>; onUnlockModalChange?: (open: boolean) => void }) {
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
+  const lockLimit = 20;
+  const items = [
+    ...signals.map((signal) => ({ type: "signal" as const, key: `${signal.source}-${signal.id}`, signal })),
+    ...extraCards.map((card) => ({ type: "card" as const, key: `card-${card.label}`, card })),
+  ];
+  const shouldLock = items.length > lockLimit && !unlocked;
+  const visibleItems = shouldLock ? items.slice(0, lockLimit) : items;
+  const hiddenCount = items.length - visibleItems.length;
+  const openUnlockModal = () => {
+    setShowUnlockModal(true);
+    onUnlockModalChange?.(true);
+  };
+  const closeUnlockModal = () => {
+    setShowUnlockModal(false);
+    onUnlockModalChange?.(false);
+  };
+
   return (
-    <div className="grid gap-2 md:grid-cols-2 lg:min-h-[216px] lg:content-between xl:grid-cols-3 2xl:grid-cols-4">
-      {signals.map((signal) => (
-        <div key={`${signal.source}-${signal.id}`} className={`rounded-xl border px-3 py-2 transition ${signalTone(signal)}`}>
-          <div className="flex min-w-0 items-center justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-semibold text-[#0b1220]">{signal.label}</div>
-              <div className="truncate text-xs opacity-75">{signal.value}</div>
+    <>
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-2 lg:min-h-[216px] lg:content-between xl:grid-cols-3 2xl:grid-cols-4">
+        {visibleItems.map((item) => item.type === "signal" ? (
+          <div key={item.key} className={`rounded-xl border px-3 py-2 transition ${signalTone(item.signal)}`}>
+            <div className="flex min-w-0 items-center justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-semibold text-[#0b1220]">{item.signal.label}</div>
+                <div className="truncate text-xs opacity-75">{item.signal.value}</div>
+              </div>
+              <div className="shrink-0 rounded-full bg-white/70 px-2.5 py-1 text-xs font-black">{item.signal.state === "pending" ? "--" : `+${item.signal.contribution}`}</div>
             </div>
-            <div className="shrink-0 rounded-full bg-white/70 px-2.5 py-1 text-xs font-black">{signal.state === "pending" ? "--" : `+${signal.contribution}`}</div>
           </div>
-        </div>
-      ))}
-      {extraCards.map((card) => (
-        <div key={card.label} className="rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-emerald-700 transition">
-          <div className="truncate text-sm font-semibold text-[#0b1220]">{card.label}</div>
-          <div className="truncate text-xs opacity-75">{card.value}</div>
-        </div>
-      ))}
-    </div>
+        ) : (
+          <div key={item.key} className="rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-emerald-700 transition">
+            <div className="truncate text-sm font-semibold text-[#0b1220]">{item.card.label}</div>
+            <div className="truncate text-xs opacity-75">{item.card.value}</div>
+          </div>
+        ))}
+
+        {shouldLock && (
+          <button type="button" onClick={openUnlockModal} className="relative col-span-2 overflow-hidden rounded-xl border border-stone-300 bg-stone-100 p-3 text-left transition hover:-translate-y-0.5 hover:bg-stone-200 md:col-span-2 xl:col-span-3 2xl:col-span-4">
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              {Array.from({ length: hiddenCount }, (_, itemIndex) => (
+                <div key={itemIndex} className={`rounded-xl border border-stone-300 bg-white/70 px-3 py-2 blur-[3px] ${itemIndex >= 6 ? "hidden md:block" : ""}`}>
+                  <div className="h-4 w-3/4 rounded bg-stone-400" />
+                  <div className="mt-2 h-3 w-1/2 rounded bg-stone-300" />
+                </div>
+              ))}
+            </div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-200/80 px-4 text-center backdrop-blur-[2px]">
+              <div className="w-full text-base font-black text-[#0b1220] md:text-3xl lg:text-5xl lg:leading-tight">还有 {hiddenCount} 个高风险封号检测指标已隐藏</div>
+              <div className="mt-3 w-full max-w-none text-base font-semibold leading-7 text-stone-700 md:text-xl md:leading-8 lg:mt-6 lg:text-2xl lg:leading-10">深度服务器检测结果已保护，请完成反爬虫人机验证后查看完整 Claude 环境风险报告</div>
+              <span className="mt-5 rounded-full bg-[#0b1220] px-7 py-3 text-base font-black text-white shadow-lg lg:mt-8 lg:px-10 lg:py-4 lg:text-xl">完成验证，查看完整报告</span>
+            </div>
+          </button>
+        )}
+      </div>
+
+      {showUnlockModal && (
+        <SignalUnlockModal
+          hiddenCount={hiddenCount}
+          onClose={closeUnlockModal}
+          onUnlock={() => {
+            setUnlocked(true);
+            closeUnlockModal();
+          }}
+        />
+      )}
+    </>
   );
 }
 
@@ -469,12 +519,15 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
   const [progress, setProgress] = useState(0);
   const [activeSignal, setActiveSignal] = useState(-1);
   const [posterUrl, setPosterUrl] = useState<string | null>(null);
+  const [showPosterModal, setShowPosterModal] = useState(false);
+  const [posterGenerating, setPosterGenerating] = useState(false);
   const [showRegionPicker, setShowRegionPicker] = useState(false);
   const [copyToast, setCopyToast] = useState(false);
   const [copyToastText, setCopyToastText] = useState("已复制海报，到剪贴板");
   const [shareCountdown, setShareCountdown] = useState<number | null>(null);
   const [autoPosterShown, setAutoPosterShown] = useState(false);
   const [autoShareReady, setAutoShareReady] = useState(false);
+  const [unlockModalOpen, setUnlockModalOpen] = useState(false);
 
   const rawScore = useMemo(() => Math.min(100, signalsScore(browserResult?.signals ?? [], serverResult?.signals ?? [])), [browserResult, serverResult]);
   const animatedScore = loading ? Math.round((rawScore * progress) / 100) : rawScore;
@@ -527,8 +580,12 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
     setProgress(0);
     setActiveSignal(0);
     setShareCountdown(null);
+    setPosterUrl(null);
+    setShowPosterModal(false);
+    setPosterGenerating(false);
     setAutoPosterShown(false);
     setAutoShareReady(false);
+    setUnlockModalOpen(false);
 
     let local: ReturnType<typeof collectBrowserSignals> | null = null;
     let remote: CheckResponse | null = null;
@@ -630,10 +687,28 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
 
   ].filter(Boolean) as Array<{ label: string; value: string }> : [];
 
+  const handleUnlockModalChange = (open: boolean) => {
+    setUnlockModalOpen(open);
+    if (open) setShareCountdown(null);
+  };
+
   const openPoster = async () => {
-    if (!canShareReport) return;
-    const dataUrl = await createPoster(animatedScore, confidenceText, suspectedRegion);
-    if (dataUrl) setPosterUrl(dataUrl);
+    if (!canShareReport || unlockModalOpen) return;
+    setShareCountdown(null);
+    setAutoPosterShown(true);
+    setPosterUrl(null);
+    setShowPosterModal(true);
+    if (posterGenerating) return;
+    setPosterGenerating(true);
+    try {
+      const [dataUrl] = await Promise.all([
+        createPoster(animatedScore, confidenceText, suspectedRegion),
+        sleep(2500),
+      ]);
+      if (dataUrl) setPosterUrl(dataUrl);
+    } finally {
+      setPosterGenerating(false);
+    }
   };
 
   const showCopiedToast = (text = "已复制海报，到剪贴板") => {
@@ -661,7 +736,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
   }, []);
 
   useEffect(() => {
-    if (!showSharePoster || !autoShareReady || !canShareReport || autoPosterShown) return;
+    if (!showSharePoster || !autoShareReady || !canShareReport || autoPosterShown || unlockModalOpen || posterUrl) return;
     let cancelled = false;
     let timers: number[] = [];
     const renderDelay = window.setTimeout(() => {
@@ -674,7 +749,6 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
         window.setTimeout(() => setShareCountdown(1), 4000),
         window.setTimeout(() => {
           setShareCountdown(null);
-          setAutoPosterShown(true);
           void openPoster();
         }, 5000),
       ];
@@ -684,7 +758,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
       window.clearTimeout(renderDelay);
       timers.forEach((timer) => window.clearTimeout(timer));
     };
-  }, [autoShareReady && canShareReport, autoPosterShown]);
+  }, [autoShareReady, canShareReport, autoPosterShown, unlockModalOpen, posterUrl]);
 
   return (
     <section className="mx-auto p-0">
@@ -749,7 +823,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
               <h3 className="text-xl font-black text-[#0b1220]">{hasChecked ? copy.signalCount(signals.length + ipMetricCards.length, true) : copy.title}</h3>
               <span className="rounded-full bg-[#fffaf3] px-3 py-1 text-xs font-bold text-stone-500">{copy.signalCount(signals.length + ipMetricCards.length, false)}</span>
             </div>
-            <div className="mt-4"><SignalList signals={signals} extraCards={ipMetricCards} /></div>
+            <div className="mt-4"><SignalList signals={signals} extraCards={ipMetricCards} onUnlockModalChange={handleUnlockModalChange} /></div>
           </div>
         </div>
       </div>
@@ -781,8 +855,8 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
         document.body
       )}
 
-      {showSharePoster && posterUrl && typeof document !== "undefined" && createPortal(
-        <div className="fixed inset-0 z-[9999] grid place-items-center bg-black/55 p-3 backdrop-blur-sm sm:p-4" onClick={() => setPosterUrl(null)}>
+      {showSharePoster && showPosterModal && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] grid place-items-center bg-black/55 p-3 backdrop-blur-sm sm:p-4" onClick={() => setShowPosterModal(false)}>
           <div className="relative flex max-h-[92vh] w-full max-w-full flex-col overflow-y-auto rounded-[1.5rem] bg-white p-3 shadow-2xl md:max-w-[min(656px,92vw)] md:rounded-[2rem] md:p-5 xl:max-w-[min(720px,92vw)] 2xl:max-w-[min(960px,92vw)] min-[1800px]:max-w-[min(960px,92vw)]" onClick={(event) => event.stopPropagation()}>
             {copyToast && (
               <div className="absolute inset-0 z-20 hidden place-items-center bg-white/55 backdrop-blur-sm md:grid">
@@ -793,7 +867,7 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
             )}
             <div className="flex items-center justify-between gap-4">
               <h3 className="text-xl font-black text-[#0b1220]">Claude 环境风险报告</h3>
-              <button type="button" onClick={() => setPosterUrl(null)} aria-label={copy.close} className="grid size-11 place-items-center rounded-full bg-stone-100 text-stone-600 transition hover:bg-stone-200">
+              <button type="button" onClick={() => setShowPosterModal(false)} aria-label={copy.close} className="grid size-11 place-items-center rounded-full bg-stone-100 text-stone-600 transition hover:bg-stone-200">
                 <svg viewBox="0 0 24 24" className="size-7" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
               </button>
             </div>
@@ -822,10 +896,21 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
                 </div>
               </aside>
               <div className="flex items-center justify-center p-0 md:overflow-hidden md:rounded-[1.5rem] md:bg-white md:p-4 md:shadow-sm md:ring-1 md:ring-stone-100">
-                <img src={posterUrl} alt="Check Claude 检测报告海报" className="h-auto max-h-[48vh] w-auto max-w-full rounded-[1.5rem] object-contain md:hidden" />
-                <button type="button" onClick={() => void copyPoster()} className="hidden overflow-hidden rounded-[1.25rem] bg-transparent p-0 md:block md:h-[calc(54vh-2rem)] 2xl:h-[calc(58vh-2rem)] min-[1800px]:h-[588px] min-[2400px]:!h-[528px]">
-                  <img src={posterUrl} alt="Check Claude 检测报告海报" className="h-full w-auto max-w-full rounded-[1.25rem] object-contain" />
-                </button>
+                {posterUrl ? (
+                  <>
+                    <img src={posterUrl} alt="Check Claude 检测报告海报" className="h-auto max-h-[48vh] w-auto max-w-full rounded-[1.5rem] object-contain md:hidden" />
+                    <button type="button" onClick={() => void copyPoster()} className="hidden overflow-hidden rounded-[1.25rem] bg-transparent p-0 md:block md:h-[calc(54vh-2rem)] 2xl:h-[calc(58vh-2rem)] min-[1800px]:h-[588px] min-[2400px]:!h-[528px]">
+                      <img src={posterUrl} alt="Check Claude 检测报告海报" className="h-full w-auto max-w-full rounded-[1.25rem] object-contain" />
+                    </button>
+                  </>
+                ) : (
+                  <div className="grid h-[48vh] w-full place-items-center rounded-[1.5rem] bg-stone-50 ring-1 ring-stone-100 md:h-[calc(54vh-2rem)] 2xl:h-[calc(58vh-2rem)] min-[1800px]:h-[588px] min-[2400px]:!h-[528px]">
+                    <div className="text-center">
+                      <div className="mx-auto size-10 animate-spin rounded-full border-4 border-stone-200 border-t-[#0b1220]" />
+                      <div className="mt-4 text-base font-black text-red-600">正在生成检测报告...</div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <a href="https://shop.apiya.ai/" target="_blank" rel="noreferrer" className="mt-4 block rounded-2xl bg-red-600 px-2 py-3 text-center shadow-lg shadow-red-900/20 md:hidden">
@@ -834,8 +919,8 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
             </a>
             <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3">
               <button type="button" onClick={() => void copySiteLink()} className="rounded-full bg-white px-4 py-3 text-sm font-black text-[#0b1220] ring-1 ring-stone-200">复制链接</button>
-              <button type="button" onClick={() => downloadDataUrl(posterUrl, "check-claude-report.png")} className="rounded-full bg-[#0b1220] px-4 py-3 text-sm font-black text-white ring-1 ring-[#0b1220] md:bg-white md:text-[#0b1220] md:ring-stone-200">保存海报</button>
-              <button type="button" onClick={() => void copyPoster()} className="hidden rounded-full bg-[#0b1220] px-4 py-3 text-sm font-black text-white md:block">复制海报，到剪贴板</button>
+              <button type="button" onClick={() => posterUrl && downloadDataUrl(posterUrl, "check-claude-report.png")} disabled={!posterUrl} className="rounded-full bg-[#0b1220] px-4 py-3 text-sm font-black text-white ring-1 ring-[#0b1220] disabled:bg-stone-200 disabled:text-stone-400 disabled:ring-stone-200 md:bg-white md:text-[#0b1220] md:ring-stone-200">保存海报</button>
+              <button type="button" onClick={() => void copyPoster()} disabled={!posterUrl} className="hidden rounded-full bg-[#0b1220] px-4 py-3 text-sm font-black text-white disabled:bg-stone-200 disabled:text-stone-400 md:block">复制海报，到剪贴板</button>
             </div>
           </div>
         </div>,
