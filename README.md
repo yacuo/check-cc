@@ -5,7 +5,7 @@
 [CheckCC](https://checkcc.org) 是一个面向 Claude 用户的运行环境风险检测项目，用于分析浏览器环境、系统时区、语言偏好、User-Agent、运行容器等技术信号，帮助用户识别可能影响 Claude 账号稳定性的环境画像冲突。
 
 - 官方在线体验：<https://checkcc.org>
-- GitHub 项目主页：<https://github.com/yacuo/checkcc>
+- GitHub 项目主页：<https://github.com/yacuo/check-cc>
 
 ## 项目说明
 
@@ -105,6 +105,6 @@ pnpm start
 
 本项目基于 MIT 协议开源，Copyright © yacuo / CheckCC。
 
-你可以自由使用、修改与再分发本项目，但任何副本或实质性部分都必须保留原始版权与许可声明，并注明来源：<https://github.com/yacuo/checkcc.git>
+你可以自由使用、修改与再分发本项目，但任何副本或实质性部分都必须保留原始版权与许可声明，并注明来源：<https://github.com/yacuo/check-cc.git>
 
 如果你重新部署本项目，请保留页脚署名或仓库链接，方便访问者找到原项目。

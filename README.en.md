@@ -5,7 +5,7 @@
 [CheckCC](https://checkcc.org) is an open-source environment risk checker for Claude users. It analyzes browser language, system timezone, Intl Locale, User-Agent, runtime container, and other local technical signals to help identify environment profile conflicts that may affect Claude account stability.
 
 - Official website: <https://checkcc.org>
-- GitHub repository: <https://github.com/yacuo/checkcc>
+- GitHub repository: <https://github.com/yacuo/check-cc>
 
 ## Overview
 
@@ -105,6 +105,6 @@ You can deploy this project to Vercel, Cloudflare Pages, Netlify, or your own se
 
 This project is open-sourced under the MIT License. Copyright © yacuo / CheckCC.
 
-You may use, modify, and redistribute this project freely, but any copy or substantial portion must retain the original copyright and license notice and credit the source: <https://github.com/yacuo/checkcc.git>
+You may use, modify, and redistribute this project freely, but any copy or substantial portion must retain the original copyright and license notice and credit the source: <https://github.com/yacuo/check-cc.git>
 
 If you redeploy this project, please keep the footer credit or repository link so visitors can find the original project.
