@@ -7,7 +7,7 @@ import { messages, type LocaleCode } from "@/i18n/messages";
 
 export const metadata: Metadata = {
   title: "Claude 环境检测｜Claude 封号风险、运行环境检查与可用地区检测",
-  description: "CheckCC.org 提供 Claude 环境检测和封号风险检测，检查 IP 地区、系统时区、浏览器语言、设备指纹、网络出口、订阅支付和 API 可用性风险，帮助用户在申请 Claude、开通 Claude Pro 或使用 Claude API 前排查异常环境。",
+  description: "CheckCC.org 聚合 Claude 封号原因、为什么封账号、封禁前异常信号、封号机制、风控规则、高风险环境判断、账号受限解封、封号退款申请、Claude 账号注册、API 申请、Claude Code 和 Claude Pro 订阅环境检测。",
 };
 
 const pageMax = "mx-auto w-full max-w-[1440px] px-5 md:px-8 2xl:max-w-[1536px] min-[1800px]:max-w-[1760px] min-[1920px]:max-w-[1920px] min-[2400px]:max-w-[2200px]";

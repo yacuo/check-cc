@@ -137,7 +137,7 @@ export default async function LocaleHome({ params }: { params: Promise<{ locale:
                 )}
               </nav>
             </article>
-            <BlogSidebar relatedPosts={relatedPosts} />
+            <BlogSidebar relatedPosts={relatedPosts} currentPost={post} />
           </div>
         </div>
         <SiteFooter />

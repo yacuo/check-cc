@@ -72,7 +72,6 @@ const regions: Array<{ code: TargetRegion }> = [
   { code: "cn" },
   { code: "hk" },
   { code: "ru" },
-  { code: "ir" },
 ];
 
 function normalizeRegion(code: TargetRegion): RegionCode {
@@ -80,7 +79,7 @@ function normalizeRegion(code: TargetRegion): RegionCode {
 }
 
 function getCheckApiUrl(region: RegionCode, lang: "zh" | "en") {
-  const endpoint = process.env.NEXT_PUBLIC_CHECK_API_URL || "https://checkcc.org/check";
+  const endpoint = process.env.NEXT_PUBLIC_CHECK_API_URL || "https://api.checkcc.org/check";
   const url = new URL(endpoint);
   url.searchParams.set("region", region);
   url.searchParams.set("lang", lang === "en" ? "en" : "zh-CN");
@@ -420,8 +419,8 @@ async function createPoster(score: number, confidenceText: string, suspectedRegi
   ctx.fillText(posterRiskLabel, 86, 724);
   ctx.font = "600 25px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
   ctx.fillStyle = "#57534e";
-  ctx.fillText("可能由系统时区、语言、字体、网络出口", 86, 786);
-  ctx.fillText("以及浏览器画像等综合原因触发", 86, 828);
+  ctx.fillText("风险可能由环境画像不一致、网络出口可信度偏低、", 86, 786);
+  ctx.fillText("设备指纹波动、地区信号冲突及账号异常触发", 86, 828);
 
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=${encodeURIComponent("https://checkcc.org")}`;
   try {
@@ -496,8 +495,10 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
         else map.set(`server-${signal.id}`, { ...signal, label: detectorText.signalLabels[signal.id] ?? signal.label, value: signal.value === detectorLocaleText.zh.signalValues.read ? detectorText.signalValues.read : localizeSignalValue(signal.value, detectorText) });
       }
     }
+    const detectedCountry = serverResult?.ipIntelligence?.detectedCountry || browserIpIntel?.country;
+    if (detectedCountry && !map.has("country")) map.set("country", { id: "country", label: detectorText.signalLabels.country, value: localizeLocation(detectedCountry, locale), score: 0, weight: 20, contribution: 0, source: "server" });
     const proxyCountry = browserIpIntel?.country || serverResult?.ipIntelligence?.detectedCountry;
-    if (proxyCountry) map.set("proxyCountry", { id: "proxyCountry", label: detectorText.signalLabels.proxyCountry, value: proxyCountry, score: 0, weight: 0, contribution: 0, source: "server" });
+    if (proxyCountry) map.set("proxyCountry", { id: "proxyCountry", label: detectorText.signalLabels.proxyCountry, value: localizeLocation(proxyCountry, locale), score: 0, weight: 0, contribution: 0, source: "server" });
     const sourceIps = serverResult?.ipIntelligence?.sources.map((item) => item.ip).filter((ip): ip is string => typeof ip === "string" && isPublicIp(ip)) ?? [];
     const detectedIpv4 = sourceIps.find((ip) => !ip.includes(":"));
     const browserPublicIp = browserIpIntel?.ip && isPublicIp(browserIpIntel.ip) ? browserIpIntel.ip : null;
@@ -544,13 +545,17 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
       }
 
       if (index === 2) {
-        const [res, browserIp] = await Promise.all([
+        const [checkApi, browserIp] = await Promise.allSettled([
           fetch(getCheckApiUrl(checkRegion, lang), { cache: "no-store" }),
           loadBrowserPing0(),
         ]);
-        remote = (await res.json()) as CheckResponse;
-        setServerResult(remote);
-        setBrowserIpIntel(browserIp);
+        if (checkApi.status === "fulfilled" && checkApi.value.ok) {
+          remote = (await checkApi.value.json()) as CheckResponse;
+          setServerResult(remote);
+        } else {
+          remote = null;
+        }
+        setBrowserIpIntel(browserIp.status === "fulfilled" ? browserIp.value : null);
       }
 
       await animateProgress(from, to, setProgress, setActiveSignal);
@@ -559,12 +564,16 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
 
     if (!local) setBrowserResult(collectBrowserSignals(checkRegion, detectorText));
     if (!remote) {
-      const [res, browserIp] = await Promise.all([
+      const [checkApi, browserIp] = await Promise.allSettled([
         fetch(getCheckApiUrl(checkRegion, lang), { cache: "no-store" }),
         loadBrowserPing0(),
       ]);
-      setServerResult((await res.json()) as CheckResponse);
-      setBrowserIpIntel(browserIp);
+      if (checkApi.status === "fulfilled" && checkApi.value.ok) {
+        setServerResult((await checkApi.value.json()) as CheckResponse);
+      } else {
+        setServerResult(null);
+      }
+      if (!browserIpIntel) setBrowserIpIntel(browserIp.status === "fulfilled" ? browserIp.value : null);
     }
 
     await animateProgress(92, 100, setProgress, setActiveSignal);
@@ -583,24 +592,41 @@ export function Detector({ lang = "zh", locale = "zh" }: Props) {
   const primaryIpSource = ipIntel?.sources
     .filter((source) => source.status === "ok" && (source.ip || source.country || source.asn || source.isp || source.org))
     .sort((a, b) => [b.ip, b.country, b.region, b.city, b.asn, b.isp, b.org, b.latitude, b.longitude].filter(Boolean).length - [a.ip, a.country, a.region, a.city, a.asn, a.isp, a.org, a.latitude, a.longitude].filter(Boolean).length)[0];
-  const ipSourceAddresses = ipIntel?.sources.map((source) => source.ip).filter((ip): ip is string => typeof ip === "string" && isPublicIp(ip)) ?? [];
+  const browserIpSource = browserIpIntel ? {
+    ip: browserIpIntel.ip,
+    country: browserIpIntel.country,
+    region: browserIpIntel.location,
+    city: browserIpIntel.location,
+    asn: browserIpIntel.asn,
+    isp: browserIpIntel.org,
+    org: browserIpIntel.org,
+    latitude: null,
+    longitude: null,
+    networkType: browserIpIntel.ip.includes(":") ? "IPv6" : "IPv4",
+    risk: null,
+  } : null;
+  const displayIpSource = primaryIpSource ?? browserIpSource;
+  const ipSourceAddresses = [
+    ...(ipIntel?.sources.map((source) => source.ip) ?? []),
+    browserIpIntel?.ip,
+  ].filter((ip): ip is string => typeof ip === "string" && isPublicIp(ip));
   const ipv4Address = ipSourceAddresses.find((ip) => !ip.includes(":")) ?? null;
   const ipv6Address = ipSourceAddresses.find((ip) => ip.includes(":")) ?? null;
-  const primaryPublicIp = primaryIpSource?.ip && isPublicIp(primaryIpSource.ip) ? primaryIpSource.ip : null;
+  const primaryPublicIp = displayIpSource?.ip && isPublicIp(displayIpSource.ip) ? displayIpSource.ip : null;
   const detectedPublicIp = ipIntel?.detectedIp && isPublicIp(ipIntel.detectedIp) ? ipIntel.detectedIp : null;
   const ipAddress = ipv4Address || primaryPublicIp || detectedPublicIp || null;
-  const ipMetricCards = primaryIpSource ? [
-    ipAddress && { label: detectorText.ipMetricLabels.ipAddress, value: ipAddress },
-    ipv6Address && ipv6Address !== ipAddress && { label: detectorText.ipMetricLabels.ipv6, value: ipv6Address },
-    ipv4Address && ipv4Address !== ipAddress && { label: detectorText.ipMetricLabels.ipv4, value: ipv4Address },
-    primaryIpSource.asn && { label: detectorText.ipMetricLabels.asn, value: primaryIpSource.asn },
-    (primaryIpSource.org || primaryIpSource.isp) && { label: detectorText.ipMetricLabels.asnOwner, value: primaryIpSource.org || primaryIpSource.isp },
-    primaryIpSource.isp && { label: detectorText.ipMetricLabels.company, value: primaryIpSource.isp },
-    primaryIpSource.longitude != null && { label: detectorText.ipMetricLabels.longitude, value: String(primaryIpSource.longitude) },
-    primaryIpSource.latitude != null && { label: detectorText.ipMetricLabels.latitude, value: String(primaryIpSource.latitude) },
-    primaryIpSource.networkType && { label: detectorText.ipMetricLabels.ipType, value: primaryIpSource.networkType },
-    primaryIpSource.risk && { label: detectorText.ipMetricLabels.risk, value: primaryIpSource.risk },
-    primaryIpSource.isp && { label: detectorText.ipMetricLabels.isp, value: primaryIpSource.isp },
+  const ipMetricCards = displayIpSource ? [
+    !ipv4Address && !ipv6Address && ipAddress && { label: detectorText.ipMetricLabels.ipAddress, value: ipAddress },
+    ipv6Address && { label: detectorText.ipMetricLabels.ipv6, value: ipv6Address },
+    ipv4Address && { label: detectorText.ipMetricLabels.ipv4, value: ipv4Address },
+    displayIpSource.asn && { label: detectorText.ipMetricLabels.asn, value: displayIpSource.asn },
+    (displayIpSource.org || displayIpSource.isp) && { label: detectorText.ipMetricLabels.asnOwner, value: displayIpSource.org || displayIpSource.isp },
+    displayIpSource.isp && { label: detectorText.ipMetricLabels.company, value: displayIpSource.isp },
+    displayIpSource.longitude != null && { label: detectorText.ipMetricLabels.longitude, value: String(displayIpSource.longitude) },
+    displayIpSource.latitude != null && { label: detectorText.ipMetricLabels.latitude, value: String(displayIpSource.latitude) },
+    displayIpSource.networkType && { label: detectorText.ipMetricLabels.ipType, value: displayIpSource.networkType },
+    displayIpSource.risk && { label: detectorText.ipMetricLabels.risk, value: displayIpSource.risk },
+    displayIpSource.isp && { label: detectorText.ipMetricLabels.isp, value: displayIpSource.isp },
 
   ].filter(Boolean) as Array<{ label: string; value: string }> : [];
 
