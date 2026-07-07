@@ -2,10 +2,40 @@
 
 [中文](README.md) | [English](README.en.md)
 
+<p align="center">
+  <img src="./docs/images/checkcc-homepage.png" alt="CheckCC homepage" width="900" />
+</p>
+
 [CheckCC](https://checkcc.org) is an open-source environment risk checker for Claude users. It analyzes browser language, system timezone, Intl Locale, User-Agent, runtime container, and other local technical signals to help identify environment profile conflicts that may affect Claude account stability.
 
 - Official website: <https://checkcc.org>
 - GitHub repository: <https://github.com/yacuo/check-cc>
+
+## Screenshots
+
+### Detection signals
+
+<p align="center">
+  <img src="./docs/images/checkcc-detection-signals.png" alt="CheckCC detection signals" width="900" />
+</p>
+
+### Detection principles
+
+<p align="center">
+  <img src="./docs/images/checkcc-detection-principles.png" alt="CheckCC detection principles" width="900" />
+</p>
+
+### Supported regions
+
+<p align="center">
+  <img src="./docs/images/checkcc-supported-regions.png" alt="CheckCC supported regions" width="900" />
+</p>
+
+### Claude environment risk report
+
+<p align="center">
+  <img src="./docs/images/check-claude-report.png" alt="CheckCC Claude environment risk report" width="900" />
+</p>
 
 ## Overview
 

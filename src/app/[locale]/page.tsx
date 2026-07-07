@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { HomeContent } from "../page";
-import { getLocaleBySlug, localeRoutes, type LocaleSlug } from "@/i18n/messages";
+import { getLocaleBySlug, localeRoutes, messages, type LocaleSlug } from "@/i18n/messages";
 
 export function generateStaticParams() {
   return Object.values(localeRoutes)
@@ -13,9 +13,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale: slug } = await params;
   const locale = getLocaleBySlug(slug);
   if (!locale) return {};
+  const copy = messages[locale];
   return {
-    title: "Claude 环境检测｜Claude 封号风险与运行环境检查",
-    description: "CheckCC 提供 Claude 运行环境、地区画像、浏览器指纹与账号风险检测。",
+    title: copy.hero.title,
+    description: copy.hero.subtitle,
     alternates: { canonical: `/${slug}` },
   };
 }

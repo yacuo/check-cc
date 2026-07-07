@@ -1,5 +1,5 @@
-export type LocaleCode = "zh" | "zh-HK" | "ru";
-export type LocaleSlug = "hong-kong" | "russia";
+export type LocaleCode = "zh" | "zh-HK" | "ru" | "en";
+export type LocaleSlug = "hong-kong" | "russia" | "en";
 
 export type Messages = {
   nav: { projects: string; faq: string; detect: string; menu: string; close: string; language: string };
@@ -34,11 +34,13 @@ export const localeRoutes: Record<LocaleCode, { slug: LocaleSlug | ""; label: st
   zh: { slug: "", label: "中国", lang: "中文" },
   "zh-HK": { slug: "hong-kong", label: "香港", lang: "繁中" },
   ru: { slug: "russia", label: "俄罗斯", lang: "Русский" },
+  en: { slug: "en", label: "Global", lang: "English" },
 };
 
 export const slugToLocale: Record<LocaleSlug, LocaleCode> = {
   "hong-kong": "zh-HK",
   russia: "ru",
+  en: "en",
 };
 
 const zhChecks: Array<[string, string]> = [
@@ -59,6 +61,26 @@ const zhFaqs: Array<[string, string]> = [
   ["如何申请 Claude 账号？", "申请账号前先确认运行环境，减少注册、验证和订阅异常。"],
   ["如何申请 Claude API？", "申请 API 前检查 IP、地区和环境一致性，减少开通风险。"],
   ["Claude Code 怎么申请？", "了解 Claude Code 与 Claude Pro 订阅相关的环境风险。"],
+];
+
+const enChecks: Array<[string, string]> = [
+  ["Regional profile consistency", "Analyze local environment signals, regional preferences, and access sources to detect obvious regional conflicts."],
+  ["Browser identity profile", "Correlate browser language, runtime traits, and Intl configuration to evaluate whether the account environment looks natural."],
+  ["Device environment fingerprint", "Use rendering traits, system signals, and runtime capabilities to identify abnormal devices or spoofed environments."],
+  ["Application container detection", "Identify browsers, in-app WebViews, and special access containers that may increase account risk."],
+  ["Account trust signals", "Evaluate device continuity, environment stability, and weak vendor signals to estimate account profile trust."],
+  ["Network exit trust", "Check IP ownership, ASN organization, edge request headers, and proxy exit consistency for Claude access risk."],
+];
+
+const enFaqs: Array<[string, string]> = [
+  ["Why can a Claude account be restricted?", "Learn common restriction reasons and how inconsistent environment profiles can increase account risk."],
+  ["What are common Claude restriction factors?", "IP region, language, timezone, payment method, device profile, and network exit consistency are common risk signals."],
+  ["How does Claude account risk detection work?", "Risk systems usually evaluate multiple environment and behavior signals instead of a single IP address."],
+  ["Can a restricted Claude account be recovered?", "Before appealing, check whether IP, timezone, language, and device signals are consistent and stable."],
+  ["Will Claude refund after account restrictions?", "Refund outcomes may depend on subscription state, payment channel, account status, and official policy."],
+  ["How should I prepare before creating a Claude account?", "Check your runtime environment first to reduce registration, verification, and subscription issues."],
+  ["How should I prepare before applying for Claude API?", "Verify that your IP, region, browser language, and environment profile are consistent before applying."],
+  ["How does Claude Code relate to environment risk?", "Claude Code and Claude Pro usage can still be affected by inconsistent account and runtime environment signals."],
 ];
 
 export const messages: Record<LocaleCode, Messages> = {
@@ -103,9 +125,21 @@ export const messages: Record<LocaleCode, Messages> = {
     footer: { title: "Что такое CheckCC?", desc: "CheckCC.org — инструмент проверки цифрового профиля среды Claude: региональные признаки, риск блокировки, сетевой выход и браузерный отпечаток.", infoTitle: "Общая информация", domain: "Домен: checkcc.org", feature: "Функция: проверка среды Claude и отчет о риске", note: "Примечание: результаты справочные, политики Claude и поддерживаемые регионы могут меняться" },
     detector: { title: "Найденные сигналы проверки", signalCount: (count, done) => done ? `Найдено ${count} сигналов` : `Показано ${count} пунктов`, targetTitle: "Выберите цель проверки", targetDesc: "По умолчанию используется автоопределение, можно выбрать ключевой регион.", startCheck: "Начать проверку", cardTags: ["Проверка среды Claude", "Риск блокировки Claude", "Проверка окружения"], loadingText: "Выполняется многофакторная проверка...", idleCta: "Повторно проверить среду Claude", idleReport: "Нажмите, чтобы создать отчет о риске среды Claude", environmentSuffix: "среда", riskPrefix: "риск блокировки", close: "Закрыть" },
   },
+  en: {
+    nav: { projects: "Checks", faq: "FAQ", detect: "Check now", menu: "Menu", close: "Close", language: "Language" },
+    hero: { title: "Check your Claude environment and account risk", subtitle: "An AI environment fingerprint engine for scanning Claude runtime signals, regional profiles, and account risk" },
+    logic: { eyebrow: "Detection Logic", title: "How CheckCC works", desc: "CheckCC breaks the Claude runtime environment into verifiable external signals. Instead of relying on a single IP address, it checks whether language, timezone, network, device, and payment-region signals are consistent.", items: [["01", "Environment fingerprint", "System timezone, UTC offset, browser language, and Intl locale."], ["02", "Network profile", "Request headers, IP region, network exit, and node consistency."], ["03", "Risk scoring", "Weighted scoring across Claude Web, Pro/Max, API, and payment-related risk."]] },
+    signals: { eyebrow: "Risk Signals", title: "Which Claude risk signals does CheckCC inspect?", desc: "These checks are rendered in static HTML for search visibility, then refined dynamically with browser-side and server-side signals during actual detection.", checks: enChecks },
+    regionsTitle: "Key regions covered",
+    regions: [{ name: "Mainland China", risk: "High risk", desc: "Checks Chinese locale traits, UTC+8 timezone, browser language, network node, and payment-region consistency." }, { name: "Hong Kong", risk: "Focused check", desc: "Checks Hong Kong network exits, Traditional Chinese language traits, timezone, and payment-region consistency." }, { name: "Russia", risk: "High risk", desc: "Checks Russian language traits, Russia timezone, network exit, and subscription availability risk." }],
+    privacy: { eyebrow: "Privacy", title: "How does CheckCC protect your privacy?", desc: "CheckCC only analyzes technical signals needed for environment risk evaluation. It does not require Claude login and does not read sensitive account content.", items: [["Will my Claude account data be uploaded?", "No. CheckCC does not require Claude login and does not read or store account names, passwords, cookies, or other sensitive data."], ["Are detection results saved?", "No personal detection results are saved. The check is only used for the current environment risk evaluation and is not linked to your Claude account."], ["Does the website use analytics?", "The website only uses Google Analytics for anonymous traffic statistics and experience improvements. It does not collect Claude account data or report content."], ["Which signals are analyzed?", "CheckCC mainly analyzes browser environment, network exit, regional profile, and device fingerprint consistency to estimate runtime risk."]] },
+    faq: { title: "Claude environment and account risk FAQ", items: enFaqs },
+    footer: { title: "What is CheckCC?", desc: "CheckCC.org is an AI environment fingerprint checker for Claude users. It analyzes Claude environment signals, account restriction risk, runtime consistency, regional profiles, network exits, and browser fingerprints.", infoTitle: "General information", domain: "Domain: checkcc.org", feature: "Feature: Claude runtime environment check and risk index report", note: "Note: results are for reference only. Claude policies and supported regions may change." },
+    detector: { title: "Detected signals", signalCount: (count, done) => done ? `${count} detected signals` : `${count} items shown`, targetTitle: "Select check target", targetDesc: "Auto detection is used by default. You can also select a key region.", startCheck: "Start check", cardTags: ["Claude environment check", "Claude account risk", "Runtime environment scan"], loadingText: "Running multi-factor detection...", idleCta: "Recheck Claude environment now", idleReport: "Click to generate a Claude environment risk report", environmentSuffix: "environment", riskPrefix: "account risk", close: "Close" },
+  },
 };
 
 export function getLocaleBySlug(slug?: string): LocaleCode | null {
   if (!slug) return defaultLocale;
-  return slug === "hong-kong" || slug === "russia" ? slugToLocale[slug] : null;
+  return slug === "hong-kong" || slug === "russia" || slug === "en" ? slugToLocale[slug] : null;
 }

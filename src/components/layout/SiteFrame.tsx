@@ -20,7 +20,7 @@ export function SiteFrame({ children }: { children: ReactNode }) {
   const [localeOpen, setLocaleOpen] = useState(false);
   const pathname = usePathname();
   const normalizedPathname = pathname.replace(/\/$/, "") || "/";
-  const activeLocale: LocaleCode = normalizedPathname === "/hong-kong" ? "zh-HK" : normalizedPathname === "/russia" ? "ru" : "zh";
+  const activeLocale: LocaleCode = normalizedPathname === "/hong-kong" ? "zh-HK" : normalizedPathname === "/russia" ? "ru" : normalizedPathname === "/en" ? "en" : "zh";
   const copy = messages[activeLocale];
   const localeItems = Object.entries(localeRoutes).map(([value, route]) => ({
     value: value as LocaleCode,

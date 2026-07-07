@@ -65,6 +65,18 @@ const detectorLocaleText: Record<LocaleCode, DetectorLocaleText> = {
     valueMap: { "中国大陆 IP": "IP материкового Китая", "访问和订阅风险极高": "Очень высокий риск доступа и подписки" },
     confidence: { high: "Высокая вероятность", medium: "Возможные признаки", low: "Небольшое совпадение", safe: "Среда выглядит безопасной:", highRiskRegion: "регион высокого риска", supportedRegion: "поддерживаемый регион" },
   },
+  en: {
+    pending: "Waiting",
+    unknown: "Unknown",
+    signalLabels: { timezone: "System timezone", language: "Browser language", languageVariant: "Language variant", chineseFonts: "Regional fonts", vendorFonts: "Vendor fonts", domesticBrowser: "Browser region traits", domesticDevice: "Device region traits", locale: "Intl locale", timezoneOffset: "Timezone offset", emojiStyle: "Emoji rendering style", country: "Network exit", proxyCountry: "Proxy exit country", ipAddress: "IP address", os: "Operating system", browserIpLocation: "IP location", browserIpAsn: "ASN", browserIpOrg: "Network organization", browser: "Browser/app environment", device: "Device/system signals", ipCountryRisk: "IP risk country", claudeAccessRisk: "Claude access risk" },
+    signalValues: { unknown: "Unknown", noBrands: "No UA-CH brands", noLanguageVariant: "No key language variant detected", scFonts: "Simplified Chinese fonts", tcFonts: "Traditional Chinese fonts", noFonts: "No key regional fonts detected", vendorFonts: "Vendor fonts", noVendorFonts: "No vendor fonts detected", noDevice: "No key device traits detected", unknownBrowser: "Unknown browser", unknownSystem: "Unknown system", appleEmoji: "Apple Emoji style", androidEmoji: "Android / vendor Emoji style", windowsEmoji: "Windows Emoji style", unknownEmoji: "Unknown Emoji style", read: "Read" },
+    ipMetricLabels: { ipAddress: "IP address", ipv6: "IPv6", ipv4: "IPv4", asn: "ASN", asnOwner: "ASN owner", company: "Company", longitude: "Longitude", latitude: "Latitude", ipType: "IP type", risk: "Risk score", isp: "ISP" },
+    regions: { auto: "Auto detect", cn: "Mainland China", hk: "Hong Kong", ru: "Russia", ir: "Iran" },
+    status: { restricted: "High risk / possibly restricted", possibly_supported: "Needs confirmation", unsupported: "Unsupported", supported: "Fully supported", unknown: "Unconfirmed" },
+    risk: { waiting: "Waiting", checking: "Checking", supported: "Fully supported", blocked: "Account risk", high: "High risk", light: "Light risk" },
+    valueMap: { "中国大陆 IP": "Mainland China IP", "访问和订阅风险极高": "Very high access and subscription risk" },
+    confidence: { high: "Highly likely", medium: "Likely", low: "Lightly matched", safe: "Environment looks safe, likely", highRiskRegion: "high-risk region", supportedRegion: "officially supported region" },
+  },
 };
 
 const regions: Array<{ code: TargetRegion }> = [
@@ -201,7 +213,7 @@ function collectBrowserSignals(region: RegionCode, text: DetectorLocaleText) {
   const vendorFonts = ["MiSans", "HarmonyOS Sans", "OPPO Sans", "vivo Sans", "Honor Sans", "Alibaba PuHuiTi", "WPS Fangzheng", "FZLanTingHeiS"].filter(hasFont);
   const domesticBrowser = matchAny(`${uaLower} ${brands.toLowerCase()}`, ["micromessenger", "qqbrowser", "mqqbrowser", "quark", "ucbrowser", "ucweb", "baiduboxapp", "baidubrowser", "miuibrowser", "mibrowser", "huaweibrowser", "heytapbrowser", "oppobrowser", "vivobrowser", "360se", "360ee", "qihoobrowser", "sogoumobilebrowser", "2345browser", "lbbrowser"]);
   const domesticDevice = matchAny(`${uaLower} ${nav.userAgentData?.platform ?? ""}`, ["harmonyos", "huawei", "honor", "xiaomi", "redmi", "oppo", "vivo", "realme", "oneplus", "miui"]);
-  const chineseVariant = languages.some((lang) => /zh-(tw|hk|mo)|zh-hant/i.test(lang)) ? (text === detectorLocaleText.ru ? "Традиционный китайский" : text === detectorLocaleText["zh-HK"] ? "中文繁體" : "中文繁体") : languages.some((lang) => /zh-cn|zh-sg|zh-hans|zh/i.test(lang)) ? (text === detectorLocaleText.ru ? "Упрощенный китайский" : text === detectorLocaleText["zh-HK"] ? "中文簡體" : "中文简体") : null;
+  const chineseVariant = languages.some((lang) => /zh-(tw|hk|mo)|zh-hant/i.test(lang)) ? (text === detectorLocaleText.ru ? "Традиционный китайский" : text === detectorLocaleText.en ? "Traditional Chinese" : text === detectorLocaleText["zh-HK"] ? "中文繁體" : "中文繁体") : languages.some((lang) => /zh-cn|zh-sg|zh-hans|zh/i.test(lang)) ? (text === detectorLocaleText.ru ? "Упрощенный китайский" : text === detectorLocaleText.en ? "Simplified Chinese" : text === detectorLocaleText["zh-HK"] ? "中文簡體" : "中文简体") : null;
   const offset = -new Date().getTimezoneOffset() / 60;
   const timezoneScore = ["Asia/Shanghai", "Asia/Urumqi", "Asia/Chongqing", "Asia/Harbin", "Asia/Kashgar"].includes(timezone ?? "") ? 1 : ["Asia/Hong_Kong", "Asia/Macau", "Asia/Taipei"].includes(timezone ?? "") ? 0.6 : 0;
   const languageScore = languages.some((lang) => /^zh-cn|zh-hans|^zh$/i.test(lang)) ? 1 : languages.some((lang) => /^zh/i.test(lang)) ? 0.5 : 0;

@@ -2,10 +2,40 @@
 
 [中文](README.md) | [English](README.en.md)
 
+<p align="center">
+  <img src="./docs/images/checkcc-homepage.png" alt="CheckCC 首页" width="900" />
+</p>
+
 [CheckCC](https://checkcc.org) 是一个面向 Claude 用户的运行环境风险检测项目，用于分析浏览器环境、系统时区、语言偏好、User-Agent、运行容器等技术信号，帮助用户识别可能影响 Claude 账号稳定性的环境画像冲突。
 
 - 官方在线体验：<https://checkcc.org>
 - GitHub 项目主页：<https://github.com/yacuo/check-cc>
+
+## 项目截图
+
+### 检测指标示例
+
+<p align="center">
+  <img src="./docs/images/checkcc-detection-signals.png" alt="CheckCC 检测指标示例" width="900" />
+</p>
+
+### 检测原理
+
+<p align="center">
+  <img src="./docs/images/checkcc-detection-principles.png" alt="CheckCC 检测原理" width="900" />
+</p>
+
+### 重点检测地区
+
+<p align="center">
+  <img src="./docs/images/checkcc-supported-regions.png" alt="CheckCC 重点检测地区" width="900" />
+</p>
+
+### Claude 环境风险报告
+
+<p align="center">
+  <img src="./docs/images/check-claude-report.png" alt="CheckCC Claude 环境风险报告" width="900" />
+</p>
 
 ## 项目说明
 
