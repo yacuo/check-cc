@@ -23,12 +23,6 @@
 | --- | --- |
 | <img src="./docs/images/checkcc-detection-principles.png" alt="CheckCC detection principles" width="430" /> | <img src="./docs/images/checkcc-supported-regions.png" alt="CheckCC supported regions" width="430" /> |
 
-### Claude environment risk report
-
-<p align="center">
-  <img src="./docs/images/check-claude-report.png" alt="CheckCC Claude environment risk report" width="900" />
-</p>
-
 ## Overview
 
 CheckCC is suitable for learning, secondary development, and self-hosting. The project focuses on whether the runtime environment is trustworthy, stable, and consistent. It does not read Claude account content and does not determine official account enforcement results.

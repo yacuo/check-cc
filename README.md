@@ -23,12 +23,6 @@
 | --- | --- |
 | <img src="./docs/images/checkcc-detection-principles.png" alt="CheckCC 检测原理" width="430" /> | <img src="./docs/images/checkcc-supported-regions.png" alt="CheckCC 重点检测地区" width="430" /> |
 
-### Claude 环境风险报告
-
-<p align="center">
-  <img src="./docs/images/check-claude-report.png" alt="CheckCC Claude 环境风险报告" width="900" />
-</p>
-
 ## 项目说明
 
 [CheckCC](https://checkcc.org) 适合用于学习、二次开发和自部署。项目关注的是“运行环境是否可信、稳定、一致”，不会读取 Claude 账号内容，也不会判断官方封禁结果。
