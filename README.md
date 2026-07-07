@@ -3,7 +3,7 @@
 [English](README.md) | [中文](README.zh-CN.md)
 
 <p align="center">
-  <img src="./docs/images/checkcc-homepage.png" alt="CheckCC homepage" width="900" />
+  <img src="./docs/images/en/checkcc-homepage.png" alt="CheckCC homepage" width="900" />
 </p>
 
 [CheckCC.org](https://checkcc.org) is a Claude runtime environment checker and account-risk analysis tool for users who are creating a Claude account, subscribing to Claude Pro, applying for Claude API access, using Claude Code, or concerned about account restrictions, subscription failures, and high-risk environments.
@@ -22,12 +22,12 @@ Development resources and AI token usage for this project are sponsored by 全�
 ### Detection signals
 
 <p align="center">
-  <img src="./docs/images/checkcc-detection-signals.png" alt="CheckCC detection signals" width="900" />
+  <img src="./docs/images/en/checkcc-detection-signals.png" alt="CheckCC detection signals" width="900" />
 </p>
 
 | Detection principles | Supported regions |
 | --- | --- |
-| <img src="./docs/images/checkcc-detection-principles.png" alt="CheckCC detection principles" width="430" /> | <img src="./docs/images/checkcc-supported-regions.png" alt="CheckCC supported regions" width="430" /> |
+| <img src="./docs/images/en/checkcc-detection-principles.png" alt="CheckCC detection principles" width="430" /> | <img src="./docs/images/en/checkcc-supported-regions.png" alt="CheckCC supported regions" width="430" /> |
 
 ## Overview
 
