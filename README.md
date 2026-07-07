@@ -19,15 +19,15 @@
   <img src="./docs/images/checkcc-detection-signals.png" alt="CheckCC 检测指标示例" width="900" />
 </p>
 
-### 检测原理
+| 检测原理 | 重点检测地区 |
+| --- | --- |
+| <img src="./docs/images/checkcc-detection-principles.png" alt="CheckCC 检测原理" width="430" /> | <img src="./docs/images/checkcc-supported-regions.png" alt="CheckCC 重点检测地区" width="430" /> |
+
+### Claude 环境风险报告
 
 <p align="center">
-  <img src="./docs/images/checkcc-detection-principles.png" alt="CheckCC 检测原理" width="900" />
+  <img src="./docs/images/check-claude-report.png" alt="CheckCC Claude 环境风险报告" width="900" />
 </p>
-
-| 重点检测地区 | Claude 环境风险报告 |
-| --- | --- |
-| <img src="./docs/images/checkcc-supported-regions.png" alt="CheckCC 重点检测地区" width="430" /> | <img src="./docs/images/check-claude-report.png" alt="CheckCC Claude 环境风险报告" width="430" /> |
 
 ## 项目说明
 
