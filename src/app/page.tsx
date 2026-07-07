@@ -5,7 +5,7 @@ import { SiteFrame } from "@/components/layout/SiteFrame";
 import { messages, type LocaleCode } from "@/i18n/messages";
 
 export const metadata: Metadata = {
-  title: "检查 Claude 运行环境和封号风险",
+  title: "检查 Claude 封号风险",
   description: "独家 AI 环境指纹引擎，综合扫描 Claude 运行环境、地区画像与账号风险",
 };
 
@@ -58,7 +58,7 @@ export function HomeContent({ locale = "zh" }: { locale?: LocaleCode }) {
       <section className="relative pt-8 pb-6 md:pt-12 md:pb-8">
         <div className="absolute inset-x-0 top-0 -z-10 h-[640px] bg-[radial-gradient(circle_at_50%_0%,rgba(217,119,87,0.30),transparent_46%),linear-gradient(180deg,#fffaf3,transparent)]" />
         <div className={`${pageMax} text-center`}>
-          <h1 className="mx-auto max-w-[1360px] text-5xl font-black leading-[1.04] tracking-tight md:text-7xl 2xl:max-w-[1480px] min-[1800px]:max-w-[1640px] min-[1800px]:text-8xl">
+          <h1 className="mx-auto max-w-full text-[clamp(32px,7vw,96px)] font-black leading-[1.04] tracking-[-0.04em] sm:max-w-[1360px] sm:tracking-tight 2xl:max-w-[1480px] min-[1800px]:max-w-[1640px]">
             {copy.hero.title}
           </h1>
           <p className="mx-auto mt-7 max-w-[1320px] text-xl font-bold leading-8 text-stone-700 md:text-2xl 2xl:max-w-[1440px] min-[1800px]:max-w-[1600px]">

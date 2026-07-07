@@ -86,7 +86,7 @@ const enFaqs: Array<[string, string]> = [
 export const messages: Record<LocaleCode, Messages> = {
   zh: {
     nav: { projects: "检测项目", faq: "FAQ", detect: "立即检测", menu: "菜单", close: "关闭", language: "语言" },
-    hero: { title: "检查 Claude 运行环境和封号风险", subtitle: "独家 AI 环境指纹引擎，综合扫描 Claude 运行环境、地区画像与账号风险" },
+    hero: { title: "检查 Claude 封号风险", subtitle: "独家 AI 环境指纹引擎，综合扫描 Claude 运行环境、地区画像与账号风险" },
     logic: {
       eyebrow: "Detection Logic",
       title: "检测原理",
@@ -103,7 +103,7 @@ export const messages: Record<LocaleCode, Messages> = {
   },
   "zh-HK": {
     nav: { projects: "檢測項目", faq: "FAQ", detect: "立即檢測", menu: "選單", close: "關閉", language: "語言" },
-    hero: { title: "檢查 Claude 運行環境和封號風險", subtitle: "AI 環境指紋引擎，綜合掃描 Claude 運行環境、地區畫像與帳號風險" },
+    hero: { title: "檢查 Claude 封號風險", subtitle: "AI 環境指紋引擎，綜合掃描 Claude 運行環境、地區畫像與帳號風險" },
     logic: { eyebrow: "Detection Logic", title: "檢測原理", desc: "我們把 Claude 運行環境拆成可驗證的外部信號，不依賴單一 IP，而是看語言、時區、網絡、設備和付款環境是否一致。", items: [["01", "環境指紋", "系統時區、UTC 偏移、瀏覽器語言、Intl locale。"], ["02", "網絡畫像", "服務端請求頭、IP 地區、網絡出口和節點一致性。"], ["03", "風險評分", "按 Claude Web、Pro/Max、API、付款風險加權匯總。"]] },
     signals: { eyebrow: "Risk Signals", title: "我們會檢測哪些 Claude 風險信號？", desc: "這些檢測項直接渲染在靜態 HTML 中；實際檢測時會結合瀏覽器端與服務端信號動態評分。", checks: [["地區畫像一致性", "綜合分析本地化環境、區域偏好與訪問來源，判斷是否存在明顯地區信號衝突。"], ["瀏覽器身份畫像", "聯合識別瀏覽器語言、運行時特徵與國際化配置，評估帳號環境是否自然一致。"], ["終端環境指紋", "透過渲染特徵、系統線索與運行時能力，捕捉異常設備環境和偽裝痕跡。"], ["應用容器識別", "識別瀏覽器、App 內 WebView 與特殊訪問容器，判斷是否存在高風險訪問場景。"], ["帳號可信度信號", "結合設備連續性、環境穩定性和國產終端弱信號，評估帳號畫像可信度。"], ["網絡出口可信度", "校驗 IP 歸屬、ASN 網絡組織、邊緣請求頭和代理出口，分析 Claude 訪問風險。"]] },
     regionsTitle: "重點地區檢測",
@@ -115,7 +115,7 @@ export const messages: Record<LocaleCode, Messages> = {
   },
   ru: {
     nav: { projects: "Проверки", faq: "FAQ", detect: "Проверить", menu: "Меню", close: "Закрыть", language: "Язык" },
-    hero: { title: "Проверьте среду Claude и риск блокировки", subtitle: "AI-движок цифрового профиля анализирует среду Claude, региональные признаки и риск аккаунта" },
+    hero: { title: "Проверьте риск блокировки Claude", subtitle: "AI-движок цифрового профиля анализирует среду Claude, региональные признаки и риск аккаунта" },
     logic: { eyebrow: "Detection Logic", title: "Как работает проверка", desc: "Мы разделяем среду Claude на проверяемые внешние сигналы: язык, часовой пояс, сеть, устройство и платежный регион.", items: [["01", "Профиль среды", "Часовой пояс, UTC-смещение, язык браузера и Intl locale."], ["02", "Сетевой профиль", "Заголовки запроса, IP-регион, сетевой выход и согласованность узла."], ["03", "Оценка риска", "Сводная оценка рисков Claude Web, Pro/Max, API и оплаты."]] },
     signals: { eyebrow: "Risk Signals", title: "Какие сигналы риска Claude проверяются?", desc: "Эти проверки отображаются в HTML и затем уточняются динамически по сигналам браузера и сервера.", checks: [["Согласованность региона", "Анализ локальной среды, региональных предпочтений и источника доступа для выявления конфликтов."], ["Профиль браузера", "Сопоставление языка браузера, runtime-признаков и Intl-конфигурации для оценки естественности среды."], ["Отпечаток устройства", "Проверка рендеринга, системных признаков и runtime-возможностей для поиска аномалий и маскировки."], ["Контейнер приложения", "Определение браузера, WebView внутри приложений и специальных контейнеров доступа с повышенным риском."], ["Доверие аккаунта", "Оценка непрерывности устройства, стабильности среды и слабых сигналов производителя терминала."], ["Доверие сетевого выхода", "Проверка IP-принадлежности, ASN, edge-заголовков и proxy-выхода для оценки риска доступа к Claude."]] },
     regionsTitle: "Ключевые регионы",
@@ -127,7 +127,7 @@ export const messages: Record<LocaleCode, Messages> = {
   },
   en: {
     nav: { projects: "Checks", faq: "FAQ", detect: "Check now", menu: "Menu", close: "Close", language: "Language" },
-    hero: { title: "Check your Claude environment and account risk", subtitle: "An AI environment fingerprint engine for scanning Claude runtime signals, regional profiles, and account risk" },
+    hero: { title: "Check Claude account risk", subtitle: "An AI environment fingerprint engine for scanning Claude runtime signals, regional profiles, and account risk" },
     logic: { eyebrow: "Detection Logic", title: "How CheckCC works", desc: "CheckCC breaks the Claude runtime environment into verifiable external signals. Instead of relying on a single IP address, it checks whether language, timezone, network, device, and payment-region signals are consistent.", items: [["01", "Environment fingerprint", "System timezone, UTC offset, browser language, and Intl locale."], ["02", "Network profile", "Request headers, IP region, network exit, and node consistency."], ["03", "Risk scoring", "Weighted scoring across Claude Web, Pro/Max, API, and payment-related risk."]] },
     signals: { eyebrow: "Risk Signals", title: "Which Claude risk signals does CheckCC inspect?", desc: "These checks are rendered in static HTML for search visibility, then refined dynamically with browser-side and server-side signals during actual detection.", checks: enChecks },
     regionsTitle: "Key regions covered",
