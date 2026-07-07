@@ -25,17 +25,9 @@
   <img src="./docs/images/checkcc-detection-principles.png" alt="CheckCC detection principles" width="900" />
 </p>
 
-### Supported regions
-
-<p align="center">
-  <img src="./docs/images/checkcc-supported-regions.png" alt="CheckCC supported regions" width="900" />
-</p>
-
-### Claude environment risk report
-
-<p align="center">
-  <img src="./docs/images/check-claude-report.png" alt="CheckCC Claude environment risk report" width="900" />
-</p>
+| Supported regions | Claude environment risk report |
+| --- | --- |
+| <img src="./docs/images/checkcc-supported-regions.png" alt="CheckCC supported regions" width="430" /> | <img src="./docs/images/check-claude-report.png" alt="CheckCC Claude environment risk report" width="430" /> |
 
 ## Overview
 
