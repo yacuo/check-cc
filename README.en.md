@@ -6,7 +6,9 @@
   <img src="./docs/images/checkcc-homepage.png" alt="CheckCC homepage" width="900" />
 </p>
 
-[CheckCC](https://checkcc.org) is an open-source environment risk checker for Claude users. It analyzes browser language, system timezone, Intl Locale, User-Agent, runtime container, and other local technical signals to help identify environment profile conflicts that may affect Claude account stability.
+[CheckCC.org](https://checkcc.org) is a Claude runtime environment checker and account-risk analysis tool for users who are creating a Claude account, subscribing to Claude Pro, applying for Claude API access, using Claude Code, or concerned about account restrictions, subscription failures, and high-risk environments.
+
+The project analyzes browser fingerprint, system timezone, language preferences, Intl Locale, User-Agent, runtime container, device environment, network exit, and regional profile signals to identify environment conflicts. It helps users detect high-risk Claude environments, pre-restriction anomaly signals, account limitation risk, Claude Pro subscription risk, Claude API application risk, and Claude Code runtime risk before taking action.
 
 - Official website: <https://checkcc.org>
 - GitHub repository: <https://github.com/yacuo/check-cc>
@@ -25,11 +27,13 @@
 
 ## Overview
 
-CheckCC is suitable for learning, secondary development, and self-hosting. The project focuses on whether the runtime environment is trustworthy, stable, and consistent. It does not read Claude account content and does not determine official account enforcement results.
+[CheckCC](https://checkcc.org) is suitable for learning, secondary development, and self-hosting. The project focuses on environment risk hints before and after Claude usage. It does not read Claude account content and does not replace official Claude or Anthropic judgments.
+
+**If you use this project for secondary development, redeployment, or derivative releases, please retain the original copyright, open-source license notice, and project source: <https://github.com/yacuo/check-cc.git>**
 
 ## How it works
 
-Claude account risk is usually not caused by a single factor. It is often related to a combined environment profile. CheckCC collects and analyzes common browser-side signals locally, then highlights possible conflicts.
+Claude account risk is not determined by a single IP address or region. It is shaped by a multi-signal environment profile that includes browser fingerprint, system timezone, language preferences, network exit, runtime container, device environment, and payment context. [CheckCC](https://checkcc.org) includes 40+ environment detection dimensions and combines client-side environment sampling, server-side request analysis, IP intelligence, runtime feature recognition, and signal-consistency checks into a readable risk assessment for Claude account restriction risk, Claude Pro subscription risk, Claude API application risk, and Claude Code runtime risk.
 
 Core detection dimensions include:
 
@@ -65,15 +69,11 @@ General suggestions:
 
 ## Features
 
-- Browser language detection
-- System timezone detection
-- Intl Locale detection
-- User-Agent detection
-- Browser runtime container detection
-- Basic risk scoring
-- Local browser environment analysis
-- Multilingual page structure
-- Responsive UI
+- 40+ environment signals and risk hints
+- Browser-side environment sampling and runtime feature recognition
+- Pre-use environment checks for Claude Web, Pro, API, and Claude Code
+- Multilingual page structure and responsive UI
+- Suitable for learning, secondary development, and self-hosting
 
 ## Privacy
 
@@ -121,6 +121,8 @@ You can deploy this project to Vercel, Cloudflare Pages, Netlify, or your own se
 
 This project is open-sourced under the MIT License. Copyright © yacuo / CheckCC.
 
-You may use, modify, and redistribute this project freely, but any copy or substantial portion must retain the original copyright and license notice and credit the source: <https://github.com/yacuo/check-cc.git>
+You may use, modify, and redistribute this project freely.
+
+Any copy, secondary development version, self-hosted site, or substantial portion of the project must retain the original copyright and license notice, and credit the source: <https://github.com/yacuo/check-cc.git>
 
 If you redeploy this project, please keep the footer credit or repository link so visitors can find the original project.
