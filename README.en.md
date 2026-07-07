@@ -15,7 +15,7 @@ The project analyzes browser fingerprint, system timezone, language preferences,
 
 ## Resource Support
 
-Development resources and AI token usage for this project are sponsored by 全球 AI Token 综合对比 <https://tokenplan.vip/> (tokenplan.vip).
+Development resources and AI token usage for this project are sponsored by 全球 AI Token 综合对比 <https://tokenplan.vip> (tokenplan.vip).
 
 ## Screenshots
 
