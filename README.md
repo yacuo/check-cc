@@ -14,6 +14,12 @@
 
 - GitHub 项目主页：<https://github.com/yacuo/check-cc>
 
+### 即将发布：一键修复，降低封禁风险
+
+> Star 本项目，第一时间收到发布更新。  
+> macOS / Windows / Linux 三端修复脚本正在内测。  
+> 想第一时间用上，先点 Star。
+
 ## 资源支持
 
 本项目开发资源及 AI Token 消耗由全球 AI Token 综合对比 <https://tokenplan.vip>（tokenplan.vip）赞助提供。
