@@ -10,7 +10,8 @@
 
 项目通过浏览器指纹、系统时区、语言偏好、Intl Locale、User-Agent、运行容器、设备环境、网络出口和地区画像等信号，分析当前环境是否存在冲突，帮助用户提前识别 Claude 高风险环境、封禁前异常信号、账号受限风险、Claude Pro 订阅风险、Claude API 申请风险和 Claude Code 使用环境风险。
 
-- 官方在线体验：<https://checkcc.org>
+## 官方在线体验：<https://checkcc.org>
+
 - GitHub 项目主页：<https://github.com/yacuo/check-cc>
 
 ## 资源支持

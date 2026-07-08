@@ -10,7 +10,8 @@
 
 The project analyzes browser fingerprint, system timezone, language preferences, Intl Locale, User-Agent, runtime container, device environment, network exit, and regional profile signals to identify environment conflicts. It helps users detect high-risk Claude environments, pre-restriction anomaly signals, account limitation risk, Claude Pro subscription risk, Claude API application risk, and Claude Code runtime risk before taking action.
 
-- Official website: <https://checkcc.org>
+## Official website: <https://checkcc.org>
+
 - GitHub repository: <https://github.com/yacuo/check-cc>
 
 ## Resource Support
