@@ -14,9 +14,9 @@
 
 - GitHub 项目主页：<https://github.com/yacuo/check-cc>
 
-### 即将发布：一键修复，降低封禁风险
+### 即将发布：一键修复 Claude 环境，降低封禁风险脚本
 
-#### Star 本项目，第一时间收到发布更新。  
+#### Star 本项目，第一时间收到，脚本，发布更新。  
 
 > macOS / Windows / Linux 三端修复脚本正在内测。  
 
