@@ -1,3 +1,4 @@
+// 多语言文案配置
 export type LocaleCode = "zh" | "zh-HK" | "ru" | "en";
 export type LocaleSlug = "hong-kong" | "russia" | "en";
 

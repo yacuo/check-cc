@@ -1,3 +1,4 @@
+// 风险评分规则
 import { REGION_PROFILES } from "../regions";
 import type { AccessStatus, ProductAccess, RegionCode, RegionProfile, SignalResult } from "./types";
 

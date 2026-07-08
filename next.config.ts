@@ -1,3 +1,4 @@
+// Next 静态导出配置
 import path from "node:path";
 import type { NextConfig } from "next";
 

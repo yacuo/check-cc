@@ -1,3 +1,4 @@
+// 站点页脚信息
 import { messages, type LocaleCode } from "@/i18n/messages";
 
 const pageMax = "mx-auto w-full max-w-[1440px] px-5 md:px-8 2xl:max-w-[1536px] min-[1800px]:max-w-[1760px] min-[1920px]:max-w-[1920px] min-[2400px]:max-w-[2200px]";

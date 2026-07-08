@@ -1,3 +1,4 @@
+// 中文首页检测入口
 import type { Metadata } from "next";
 import { Detector } from "@/components/detector/Detector";
 import { SiteFooter } from "@/components/layout/SiteFooter";

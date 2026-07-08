@@ -1,3 +1,4 @@
+// 检测数据类型
 export type RegionCode = "auto" | "cn" | "ru" | "ir";
 export type AccessStatus = "supported" | "possibly_supported" | "restricted" | "unsupported" | "unknown";
 export type SignalSource = "browser" | "server" | "combined";

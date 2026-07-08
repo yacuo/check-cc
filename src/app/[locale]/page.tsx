@@ -1,3 +1,4 @@
+// 多语言页面路由
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { HomeContent } from "../page";

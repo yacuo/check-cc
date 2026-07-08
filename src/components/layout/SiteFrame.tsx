@@ -1,5 +1,6 @@
 "use client";
 
+// 站点导航布局框架
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";

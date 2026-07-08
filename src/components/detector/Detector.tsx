@@ -1,5 +1,6 @@
 "use client";
 
+// Claude 环境检测组件
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { evaluateAccess } from "@/lib/detection/scoring";

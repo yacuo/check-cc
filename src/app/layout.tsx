@@ -1,3 +1,4 @@
+// 全站元信息与脚本
 import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
