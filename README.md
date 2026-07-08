@@ -3,7 +3,7 @@
 [中文](README.md) | [English](README.en.md)
 
 <p align="center">
-  <img src="./docs/images/cn/checkcc-homepage.png" alt="CheckCC 首页" width="900" />
+  <img src="./docs/images/cn/checkcc-homepage.png?v=070801" alt="CheckCC 首页" width="900" />
 </p>
 
 [CheckCC.org](https://checkcc.org) 是一个 Claude 运行环境检测与账号风险分析工具，面向正在注册 Claude 账号、订阅 Claude Pro、申请 Claude API、使用 Claude Code，或担心 Claude 封号、账号受限、订阅失败的用户。
@@ -31,12 +31,12 @@
 ### 检测指标示例
 
 <p align="center">
-  <img src="./docs/images/cn/checkcc-detection-signals.png" alt="CheckCC 检测指标示例" width="900" />
+  <img src="./docs/images/cn/checkcc-detection-signals.png?v=070801" alt="CheckCC 检测指标示例" width="900" />
 </p>
 
 | 检测原理 | 重点检测地区 |
 | --- | --- |
-| <img src="./docs/images/cn/checkcc-detection-principles.png" alt="CheckCC 检测原理" width="430" /> | <img src="./docs/images/cn/checkcc-supported-regions.png" alt="CheckCC 重点检测地区" width="430" /> |
+| <img src="./docs/images/cn/checkcc-detection-principles.png?v=070801" alt="CheckCC 检测原理" width="430" /> | <img src="./docs/images/cn/checkcc-supported-regions.png?v=070801" alt="CheckCC 重点检测地区" width="430" /> |
 
 ## 项目说明
 
