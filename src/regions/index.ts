@@ -1,5 +1,5 @@
 // 地区画像规则
-import type { RegionProfile } from "@/lib/detection/types";
+import type { RegionProfile } from "@/detection/types";
 
 export const REGION_PROFILES: RegionProfile[] = [
   {

@@ -1,6 +1,26 @@
 {
   "name": "check-cc",
   "version": "0.1.0",
+  "description": "Claude environment checker and account-risk analysis tool.",
+  "license": "MIT",
+  "homepage": "https://checkcc.org",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yacuo/check-cc.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yacuo/check-cc/issues"
+  },
+  "keywords": [
+    "claude",
+    "anthropic",
+    "environment-checker",
+    "risk-analysis",
+    "nextjs"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",

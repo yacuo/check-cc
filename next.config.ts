@@ -1,4 +1,3 @@
-// Next 静态导出配置
 import path from "node:path";
 import type { NextConfig } from "next";
 
@@ -9,14 +8,27 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
-  // 允许从局域网 IP（手机真机调试）访问 dev 资源（HMR / JS chunk / 字体）。
-  // 否则 Next.js 16 默认拦截跨源 dev 请求，导致手机端 React 无法 hydrate，按钮点击失效。
+  // Allow private-network devices to load dev assets during LAN testing.
+  // 允许局域网设备在开发调试时加载 HMR、JS chunk 和字体等 dev 资源。
   allowedDevOrigins: [
-    "192.168.1.32",
-    "192.168.1.*",
-    "192.168.0.*",
-    "10.0.0.*",
-    "172.16.*",
+    "192.168.*.*",
+    "10.*.*.*",
+    "172.16.*.*",
+    "172.17.*.*",
+    "172.18.*.*",
+    "172.19.*.*",
+    "172.20.*.*",
+    "172.21.*.*",
+    "172.22.*.*",
+    "172.23.*.*",
+    "172.24.*.*",
+    "172.25.*.*",
+    "172.26.*.*",
+    "172.27.*.*",
+    "172.28.*.*",
+    "172.29.*.*",
+    "172.30.*.*",
+    "172.31.*.*",
   ],
 };
 
