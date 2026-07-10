@@ -1,4 +1,4 @@
-# CheckCC
+# CheckCC｜Claude Code 环境检测、封号检查风险与运行环境IP纯净度检测
 
 [中文](README.md) | [English](README.en.md)
 

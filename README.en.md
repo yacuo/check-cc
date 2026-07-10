@@ -1,4 +1,4 @@
-# CheckCC
+# CheckCC | Claude Code Environment Check, Account Suspension Risk & Runtime IP Reputation
 
 [English](README.en.md) | [中文](README.md)
 
