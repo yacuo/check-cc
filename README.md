@@ -22,6 +22,11 @@
 
 想第一时间用上，先点 Star，绝对靠谱。
 
+<p align="center">
+  <img src="./docs/images/cn/check-cc-lock.png" alt="Check CC Lock 桌面端预览" width="900" />
+</p>
+
+
 ## 资源支持
 
 本项目开发资源及 AI Token 消耗由全球 AI Token 综合对比 <https://tokenplan.vip>（tokenplan.vip）赞助提供。
