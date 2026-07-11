@@ -18,7 +18,7 @@
 
 #### Star 本项目，第一时间收到，修复程序，发布更新。  
 
-> macOS / Windows / Linux 三端桌面端，修复程序，正在内测。  
+> MacOS / Windows / Linux 免费三端修复，桌面端应用，正在内测 
 
 想第一时间用上，先点 Star，绝对靠谱。
 
