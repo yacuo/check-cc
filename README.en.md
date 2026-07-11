@@ -14,6 +14,18 @@ The project analyzes browser fingerprint, system timezone, language preferences,
 
 - GitHub repository: <https://github.com/yacuo/check-cc>
 
+### Coming soon: a one-click desktop repair app for Claude environments
+
+#### Star this project to receive the desktop repair app release update first.
+
+#### Free desktop app for macOS / Windows / Linux — now in private beta
+
+Want early access? Star the project and stay tuned.
+
+<p align="center">
+  <img src="./docs/images/cn/check-cc-lock.png" alt="Check CC Lock desktop app preview" width="900" />
+</p>
+
 ## Resource Support
 
 Development resources and AI token usage for this project are sponsored by 全球 AI Token 综合对比 <https://tokenplan.vip> (tokenplan.vip).
