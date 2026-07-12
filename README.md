@@ -23,7 +23,7 @@
 想第一时间用上，先点 Star，绝对靠谱。
 
 <p align="center">
-  <img src="./docs/images/cn/check-cc-lock.png" alt="Check CC Lock 桌面端预览" width="900" />
+  <img src="https://checkcc.org/Check-CC-Lock.png" alt="Check CC Lock 桌面端预览" width="900" />
 </p>
 
 

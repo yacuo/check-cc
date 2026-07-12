@@ -23,7 +23,7 @@ The project analyzes browser fingerprint, system timezone, language preferences,
 Want early access? Star the project and stay tuned.
 
 <p align="center">
-  <img src="./docs/images/cn/check-cc-lock.png" alt="Check CC Lock desktop app preview" width="900" />
+  <img src="https://checkcc.org/Check-CC-Lock.png" alt="Check CC Lock desktop app preview" width="900" />
 </p>
 
 ## Resource Support
