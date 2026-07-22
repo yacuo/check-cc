@@ -1,3 +1,4 @@
+/* CheckCC 的全局样式入口，用于加载 Tailwind CSS、定义主题变量和基础页面样式。 */
 @import "tailwindcss";
 
 :root {

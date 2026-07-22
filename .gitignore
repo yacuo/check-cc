@@ -1,3 +1,4 @@
+# CheckCC 的 Git 忽略规则，用于排除依赖、构建产物、环境变量、本地调试文件和系统临时文件。
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies

@@ -1,3 +1,4 @@
+// CheckCC 的 Next.js 构建配置，用于静态导出站点、关闭图片优化并支持局域网开发调试资源加载。
 import path from "node:path";
 import type { NextConfig } from "next";
 

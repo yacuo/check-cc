@@ -1,4 +1,4 @@
-// 站点页脚信息
+// CheckCC 的站点页脚组件，用于展示项目说明、官网链接、GitHub 入口和底部提示信息。
 import { messages, type LocaleCode } from "@/i18n/messages";
 
 const pageMax = "mx-auto w-full max-w-[1440px] px-5 md:px-8 2xl:max-w-[1536px] min-[1800px]:max-w-[1760px] min-[1920px]:max-w-[1920px] min-[2400px]:max-w-[2200px]";

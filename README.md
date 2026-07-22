@@ -1,3 +1,4 @@
+<!-- CheckCC 中文项目说明文档，用于向开源用户介绍项目用途、在线体验、检测能力与部署方式。 -->
 # CheckCC｜Claude Code 环境检测、封号检查风险与运行环境IP纯净度检测
 
 [中文](README.md) | [English](README.en.md)

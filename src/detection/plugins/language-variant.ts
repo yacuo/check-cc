@@ -1,3 +1,4 @@
+// CheckCC 的语言变体检测插件，用于识别简体、繁体等中文语言偏好并参与风险评分。
 import { makeSignalScore } from "../client-engine";
 import type { DetectionPlugin } from "../plugin";
 

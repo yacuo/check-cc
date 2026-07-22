@@ -1,4 +1,4 @@
-// 多语言文案配置
+// CheckCC 的多语言文案配置，用于集中维护中文、繁体中文、俄文和英文页面内容。
 export type LocaleCode = "zh" | "zh-HK" | "ru" | "en";
 export type LocaleSlug = "hong-kong" | "russia" | "en";
 

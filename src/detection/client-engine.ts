@@ -1,3 +1,4 @@
+// CheckCC 的浏览器检测核心工具，用于采集环境信号、生成展示数据并计算前端风险结果。
 import { evaluateAccess } from "./scoring";
 import { detectionConfig, getSignalConfig, getSignalWeight, type DetectionConfig } from "./config";
 import type { DetectorLocaleText, TargetRegion } from "./locale";

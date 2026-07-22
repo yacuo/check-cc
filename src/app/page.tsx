@@ -1,4 +1,4 @@
-// 中文首页检测入口
+// CheckCC 的中文首页检测入口，用于渲染首页内容、环境检测模块、地区说明、隐私说明和 FAQ。
 import type { Metadata } from "next";
 import { Detector } from "@/components/detector/Detector";
 import { SiteFooter } from "@/components/layout/SiteFooter";

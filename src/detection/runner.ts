@@ -1,3 +1,4 @@
+// CheckCC 的检测运行器，用于收集浏览器环境并按插件配置生成去重后的风险信号结果。
 import { collectBrowserEnvironment, collectBrowserSignals } from "./client-engine";
 import { detectionConfig, type DetectionConfig } from "./config";
 import type { DetectionPluginContext } from "./plugin";

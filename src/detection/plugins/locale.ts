@@ -1,3 +1,4 @@
+// CheckCC 的 Locale 检测插件，用于读取浏览器 Intl Locale 并判断与目标地区的匹配风险。
 import { makeSignalScore } from "../client-engine";
 import type { DetectionPlugin } from "../plugin";
 

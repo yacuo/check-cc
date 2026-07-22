@@ -1,3 +1,4 @@
+// CheckCC 的检测配置类型定义，用于约束运行器、步骤、信号、服务和整体配置结构。
 import type { SignalSource } from "../types";
 
 export type DetectionRunnerMode = "sequential" | "parallel" | "grouped";

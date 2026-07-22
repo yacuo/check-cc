@@ -1,3 +1,4 @@
+// CheckCC 的检测模块本地化工具，用于定义检测文案结构并按语言展示地区和信号值。
 import type { LocaleCode } from "@/i18n/messages";
 import type { RegionCode } from "./types";
 

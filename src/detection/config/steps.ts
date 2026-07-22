@@ -1,3 +1,4 @@
+// CheckCC 的检测步骤配置，用于定义前端扫描流程中的步骤顺序和多语言文案键。
 import type { DetectionStepConfig } from "./types";
 
 export const stepConfig: DetectionStepConfig[] = [

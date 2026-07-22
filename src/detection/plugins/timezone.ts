@@ -1,3 +1,4 @@
+// CheckCC 的时区检测插件，用于读取浏览器时区并评估 Claude 运行环境的地区一致性。
 import { makeSignalScore } from "../client-engine";
 import type { DetectionPlugin } from "../plugin";
 

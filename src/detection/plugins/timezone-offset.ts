@@ -1,3 +1,4 @@
+// CheckCC 的时区偏移检测插件，用于读取浏览器 UTC 偏移并评估地区环境一致性。
 import { makeSignalScore } from "../client-engine";
 import type { DetectionPlugin } from "../plugin";
 

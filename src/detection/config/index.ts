@@ -1,3 +1,4 @@
+// CheckCC 的检测配置聚合入口，用于统一导出运行器、服务、信号和步骤配置。
 import { runnerConfig } from "./runner";
 import { serviceConfig } from "./services";
 import { signalConfig } from "./signals";

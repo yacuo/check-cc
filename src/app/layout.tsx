@@ -1,4 +1,4 @@
-// 全站元信息与脚本
+// CheckCC 的全站布局入口，用于声明 SEO 元信息、全局样式、统计脚本和页面根结构。
 import type { Metadata } from "next";
 import "./globals.css";
 

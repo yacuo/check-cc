@@ -1,5 +1,6 @@
 "use client";
 
+// CheckCC 的浏览器端检测组件，用于执行环境扫描、展示风险信号、进度状态和检测结果。
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import type { CheckResponse, SignalResult } from "@/detection/types";

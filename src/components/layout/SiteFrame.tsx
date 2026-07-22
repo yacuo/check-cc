@@ -1,6 +1,6 @@
 "use client";
 
-// 站点导航布局框架
+// CheckCC 的站点导航布局框架，用于提供品牌入口、多语言导航、移动端菜单和页面内容容器。
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";

@@ -1,4 +1,4 @@
-// 风险评分规则
+// CheckCC 的风险评分规则，用于根据地区画像和浏览器信号计算 Claude 产品访问状态与风险分数。
 import { REGION_PROFILES } from "../regions";
 import type { AccessStatus, ProductAccess, RegionCode, RegionProfile, SignalResult } from "./types";
 

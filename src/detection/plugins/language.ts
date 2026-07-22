@@ -1,3 +1,4 @@
+// CheckCC 的语言检测插件，用于读取浏览器语言列表并评估地区语言偏好风险。
 import { makeSignalScore } from "../client-engine";
 import type { DetectionPlugin } from "../plugin";
 

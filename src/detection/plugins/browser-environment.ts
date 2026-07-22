@@ -1,3 +1,4 @@
+// CheckCC 的浏览器环境检测插件，用于汇总浏览器端可见的环境风险信号。
 import { collectBrowserSignals } from "../client-engine";
 import type { DetectionPlugin } from "../plugin";
 

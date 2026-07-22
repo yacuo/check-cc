@@ -1,4 +1,4 @@
-// 多语言页面路由
+// CheckCC 的多语言页面路由，用于生成静态语言路径并按 URL slug 渲染对应本地化首页。
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { HomeContent } from "../page";

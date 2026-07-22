@@ -1,4 +1,4 @@
-// 地区画像规则
+// CheckCC 的地区画像规则，用于定义国家、时区、语言、浏览器、设备和产品可用性风险特征。
 import type { RegionProfile } from "@/detection/types";
 
 export const REGION_PROFILES: RegionProfile[] = [

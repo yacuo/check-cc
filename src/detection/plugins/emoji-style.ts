@@ -1,3 +1,4 @@
+// CheckCC 的 Emoji 风格检测插件，用于通过系统 Emoji 呈现特征辅助判断设备环境风险。
 import { makeSignalScore } from "../client-engine";
 import type { DetectionPlugin } from "../plugin";
 

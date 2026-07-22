@@ -1,3 +1,4 @@
+// CheckCC 的检测信号配置，用于声明各风险信号的启用状态、来源、权重和展示顺序。
 import type { DetectionSignalConfig } from "./types";
 
 export const signalConfig: Record<string, DetectionSignalConfig> = {

@@ -1,3 +1,4 @@
+// CheckCC 的检测插件接口定义，用于约束每个检测插件接收的上下文和返回的风险信号。
 import type { LocaleCode } from "@/i18n/messages";
 import type { BrowserEnvironmentSnapshot } from "./client-engine";
 import type { DetectorLocaleText } from "./locale";

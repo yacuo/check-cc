@@ -1,19 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# CheckCC local development restart script.
-# CheckCC 本地开发重启脚本。
+# CheckCC 开源项目一键部署启动脚本。
 #
-# Usage / 用法:
+# 这个脚本面向所有开源用户，适合第一次拉取项目后直接运行，也适合日常开发时重启服务。
+# 它会自动进入项目根目录、创建日志目录、停止当前端口上的旧服务、安装缺失依赖、构建项目，
+# 然后用 Next.js 开发服务启动 CheckCC，并在终端打印本机与局域网访问地址。
+#
+# 常用启动方式：
+#   ./shell/deploy-restart-hot.sh
+#
+# 指定端口启动：
 #   PORT=7865 ./shell/deploy-restart-hot.sh
 #
-# Environment / 环境变量:
-#   PORT       Server port. Default: 7865
-#              服务端口，默认 7865。
-#   HOST       Bind host. Default: 0.0.0.0
-#              监听地址，默认 0.0.0.0。
-#   LOG_DIR    Runtime log directory. Default: ./logs/dev
-#              运行日志目录，默认 ./logs/dev。
+# 可选环境变量：
+#   PORT     服务端口，默认 7865。
+#   HOST     监听地址，默认 0.0.0.0，方便同一局域网内设备访问。
+#   LOG_DIR  运行日志目录，默认 ./logs/dev。
+#
+# 启动成功后请优先使用终端打印的访问地址；启动失败时请查看终端打印的日志文件路径。
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PORT="${PORT:-7865}"
@@ -29,6 +34,10 @@ log() {
   printf '[CheckCC] %s\n' "$1"
 }
 
+print_step() {
+  printf '\n[CheckCC] %s\n' "$1"
+}
+
 local_ips() {
   if command -v ipconfig >/dev/null 2>&1; then
     for iface in en0 en1; do
@@ -42,17 +51,25 @@ local_ips() {
 }
 
 stop_existing_server() {
-  log "Stopping existing service on port $PORT / 停止端口 $PORT 上的旧服务"
+  print_step "1/4 检查并停止旧服务，释放端口 ${PORT}。"
 
   if command -v lsof >/dev/null 2>&1; then
     local pids
     pids="$(lsof -ti tcp:"$PORT" || true)"
     if [ -n "$pids" ]; then
+      log "发现端口 ${PORT} 已被占用，正在停止旧进程: ${pids}"
       echo "$pids" | xargs kill 2>/dev/null || true
       sleep 1
       pids="$(lsof -ti tcp:"$PORT" || true)"
-      [ -n "$pids" ] && echo "$pids" | xargs kill -9 2>/dev/null || true
+      if [ -n "$pids" ]; then
+        log "旧进程未正常退出，执行强制停止: ${pids}"
+        echo "$pids" | xargs kill -9 2>/dev/null || true
+      fi
+    else
+      log "端口 ${PORT} 未被占用，可以直接启动。"
     fi
+  else
+    log "未找到 lsof，跳过端口占用检查。"
   fi
 
   if [ -f "$PID_FILE" ]; then
@@ -66,19 +83,23 @@ stop_existing_server() {
 }
 
 ensure_dependencies() {
-  log "Checking dependencies / 检查依赖"
+  print_step "2/4 检查项目依赖。"
   if [ ! -x "$ROOT_DIR/node_modules/.bin/next" ]; then
+    log "未检测到 Next.js 依赖，开始执行 pnpm install。"
     pnpm install
+  else
+    log "依赖已存在，跳过安装。"
   fi
 }
 
 start_server() {
   rm -f "$ROOT_DIR/.next/lock" "$ROOT_DIR/.next/cache/lock" 2>/dev/null || true
 
-  log "Building project / 构建项目"
+  print_step "3/4 构建 CheckCC 项目。"
   "$ROOT_DIR/node_modules/.bin/next" build
 
-  log "Starting dev server on port $PORT / 启动开发服务，端口 $PORT"
+  print_step "4/4 启动 CheckCC 开发服务。"
+  log "服务将监听 ${HOST}:${PORT}，后台日志写入 ${LOG_FILE}。"
   nohup "$ROOT_DIR/node_modules/.bin/next" dev --webpack --hostname "$HOST" --port "$PORT" > "$LOG_FILE" 2>&1 &
   echo $! > "$PID_FILE"
 }
@@ -89,7 +110,8 @@ print_section() {
 }
 
 print_item() {
-  printf '  %-18s %s\n' "$1" "$2"
+  printf '%s\n' "$1"
+  printf '%s\n' "$2"
 }
 
 print_startup_info() {
@@ -100,30 +122,35 @@ print_startup_info() {
   ips="$(local_ips | awk 'NF && !seen[$0]++')"
 
   echo ""
-  log "Dev server started / 开发服务已启动"
+  log "CheckCC 已启动。下面是开源用户最常用的信息。"
 
-  print_section "服务信息 / Service"
-  print_item "项目 / Project" "CheckCC"
-  print_item "状态 / Status" "已启动 / Started"
-  print_item "进程 / PID" "$pid"
-  print_item "端口 / Port" "$PORT"
-  print_item "监听 / Host" "$HOST"
+  print_section "项目状态"
+  print_item "项目" "CheckCC"
+  print_item "运行状态" "已启动"
+  print_item "进程 PID" "$pid"
+  print_item "服务端口" "$PORT"
+  print_item "监听地址" "$HOST"
 
-  print_section "访问地址 / Visit URLs"
-  print_item "本机 / Local" "http://localhost:$PORT"
-  print_item "本机 / Local" "http://127.0.0.1:$PORT"
+  print_section "浏览器访问地址"
+  print_item "本机访问" "http://localhost:${PORT}"
+  print_item "备用本机访问" "http://127.0.0.1:${PORT}"
 
   if [ -n "$ips" ]; then
     while IFS= read -r ip; do
-      [ -n "$ip" ] && print_item "局域网 / LAN" "http://$ip:$PORT"
+      [ -n "$ip" ] && print_item "局域网设备访问" "http://${ip}:${PORT}"
     done <<< "$ips"
   else
-    print_item "局域网 / LAN" "未检测到局域网地址 / No LAN address found"
+    print_item "局域网设备访问" "未检测到局域网地址"
   fi
 
-  print_section "运行文件 / Runtime Files"
-  print_item "日志 / Log" "$LOG_FILE"
+  print_section "运行文件"
+  print_item "启动日志" "$LOG_FILE"
   print_item "PID 文件" "$PID_FILE"
+
+  print_section "常用操作"
+  print_item "查看日志" "tail -f $LOG_FILE"
+  print_item "重新启动" "./shell/deploy-restart-hot.sh"
+  print_item "更换端口" "PORT=3000 ./shell/deploy-restart-hot.sh"
   echo ""
 }
 
@@ -134,9 +161,13 @@ start_server
 sleep 3
 
 if ! kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
-  log "Failed to start / 启动失败"
-  echo "Log file / 日志文件: $LOG_FILE"
+  log "CheckCC 启动失败。请先查看下面的错误日志。"
+  print_section "错误日志"
   tail -n 80 "$LOG_FILE" || true
+  print_section "排查入口"
+  print_item "完整日志" "$LOG_FILE"
+  print_item "常见原因" "依赖安装失败、端口被占用、Node.js 版本过低"
+  print_item "建议命令" "pnpm install && ./shell/deploy-restart-hot.sh"
   exit 1
 fi
 

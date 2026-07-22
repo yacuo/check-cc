@@ -1,3 +1,4 @@
+# CheckCC 的 pnpm 锁定文件，用于固定依赖解析结果，保证开源用户安装到一致的依赖版本。
 lockfileVersion: '9.0'
 
 settings:
