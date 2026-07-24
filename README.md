@@ -44,6 +44,12 @@
 | --- | --- |
 | <img src="./docs/images/cn/checkcc-detection-principles.png?v=070801" alt="CheckCC 检测原理" width="430" /> | <img src="./docs/images/cn/checkcc-supported-regions.png?v=070801" alt="CheckCC 重点检测地区" width="430" /> |
 
+## CheckCC 问题反馈群
+
+<p align="center">
+  <img src="https://cdn.ddkk.com/images/weixin/checkcc/weixin.png" alt="CheckCC 问题反馈群" width="220" />
+</p>
+
 ## 项目说明
 
 [CheckCC](https://checkcc.org) 适合用于学习、二次开发和自部署。项目专注于 Claude 使用前后的环境风险提示，不读取 Claude 账号内容，不替代 Claude 或 Anthropic 的官方判断。
