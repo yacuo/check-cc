@@ -156,12 +156,75 @@ export function collectBrowserSignals(region: RegionCode, text: DetectorLocaleTe
   return { ...evaluateAccess({ region, languages, timezone, locale, userAgent: ua, source: "browser" }), signals };
 }
 
-export function isPublicIp(ip: string) {
-  if (ip.includes(":")) return !/^(::1|fc|fd|fe80:)/i.test(ip);
-  const parts = ip.split(".").map(Number);
-  if (parts.length !== 4 || parts.some((part) => Number.isNaN(part))) return false;
+function parseIpv4(ip: string): number[] | null {
+  const parts = ip.split(".");
+  if (parts.length !== 4) return null;
+  const numbers: number[] = [];
+  for (const part of parts) {
+    if (!/^\d{1,3}$/.test(part)) return null;
+    const value = Number(part);
+    if (value > 255) return null;
+    numbers.push(value);
+  }
+  return numbers;
+}
+
+function parseIpv6(ip: string): number[] | null {
+  const value = ip.trim().replace(/^\[|\]$/g, "");
+  if (!value.includes(":") || value.includes("%")) return null;
+  const halves = value.split("::");
+  if (halves.length > 2) return null;
+  const parseGroup = (group: string): number[] | null => {
+    if (group.includes(".")) {
+      const ipv4 = parseIpv4(group);
+      return ipv4 ? [(ipv4[0] << 8) | ipv4[1], (ipv4[2] << 8) | ipv4[3]] : null;
+    }
+    return /^[0-9a-f]{1,4}$/i.test(group) ? [parseInt(group, 16)] : null;
+  };
+  const parseSegment = (segment: string): number[] | null => {
+    if (!segment) return [];
+    const groups: number[] = [];
+    const parts = segment.split(":");
+    for (let index = 0; index < parts.length; index += 1) {
+      const parsed = parseGroup(parts[index]);
+      if (!parsed || (parsed.length === 2 && index !== parts.length - 1)) return null;
+      groups.push(...parsed);
+    }
+    return groups;
+  };
+  const left = parseSegment(halves[0]);
+  const right = parseSegment(halves[1] ?? "");
+  if (!left || !right) return null;
+  if (halves.length === 1) return left.length === 8 ? left : null;
+  const missing = 8 - left.length - right.length;
+  if (missing < 1) return null;
+  return [...left, ...new Array<number>(missing).fill(0), ...right];
+}
+
+function isPublicIpv4(parts: number[]) {
   const [a, b] = parts;
   return !(a === 10 || a === 127 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 169 && b === 254) || a === 0);
+}
+
+function isPublicIpv6(parts: number[]) {
+  const mapped = parts.slice(0, 5).every((part) => part === 0) && parts[5] === 0xffff
+    ? [(parts[6] >> 8) & 0xff, parts[6] & 0xff, (parts[7] >> 8) & 0xff, parts[7] & 0xff]
+    : null;
+  if (mapped) return isPublicIpv4(mapped);
+  if (parts.every((part, index) => (index === 7 ? part <= 1 : part === 0))) return false;
+  const first = parts[0];
+  if ((first & 0xfe00) === 0xfc00) return false;
+  if ((first & 0xffc0) === 0xfe80) return false;
+  if ((first & 0xffc0) === 0xfec0) return false;
+  return true;
+}
+
+export function isPublicIp(ip: string) {
+  const value = ip.trim();
+  const ipv4 = parseIpv4(value);
+  if (ipv4) return isPublicIpv4(ipv4);
+  const ipv6 = parseIpv6(value);
+  return ipv6 ? isPublicIpv6(ipv6) : false;
 }
 
 export function signalsScore(browserSignals: SignalResult[], serverSignals: SignalResult[], config: DetectionConfig = detectionConfig) {
