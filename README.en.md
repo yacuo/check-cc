@@ -43,12 +43,6 @@ Development resources and AI token usage for this project are sponsored by ÂÖ®Áê
 | --- | --- |
 | <img src="./docs/images/en/checkcc-detection-principles.png?v=070801" alt="CheckCC detection principles" width="430" /> | <img src="./docs/images/en/checkcc-supported-regions.png?v=070801" alt="CheckCC supported regions" width="430" /> |
 
-## CheckCC WeChat Feedback Groups
-
-| Group 2 |
-| :---: |
-| <img src="https://cdn.ddkk.com/images/weixin/checkcc/081002.png" alt="CheckCC WeChat feedback group 2" width="220" /> |
-
 ## Overview
 
 [CheckCC](https://checkcc.org) is suitable for learning, secondary development, and self-hosting. The project focuses on environment risk hints before and after Claude usage. It does not read Claude account content and does not replace official Claude or Anthropic judgments.
