@@ -29,7 +29,7 @@ Want early access? Star the project and stay tuned.
 
 ## Resource Support
 
-Development resources and AI token usage for this project are sponsored by 全球 AI Token 综合对比 <https://tokenplan.vip> (tokenplan.vip).
+Development resources and AI token usage for this project are sponsored by 全球 AI Token 综合对比 <https://tokenplan.vip> (tokenplan.vip), <https://dsh-plugin.org/> (dsh-plugin.org), and <https://newhot.org/> (newhot.org).
 
 ## Screenshots
 

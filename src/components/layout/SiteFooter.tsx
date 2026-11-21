@@ -23,7 +23,7 @@ export function SiteFooter({ locale = "zh" }: { locale?: LocaleCode }) {
           <p>{copy.feature}</p>
           <p>{copy.note}</p>
           <p className="mt-3">
-            本项目开发资源及 AI Token 消耗由全球 AI Token 综合对比 <a href="https://tokenplan.vip/" target="_blank" rel="friend noopener noreferrer" className="font-bold text-[#c05f3c] transition hover:text-[#d97757]">tokenplan.vip</a> 赞助提供。
+            本项目开发资源及 AI Token 消耗由全球 AI Token 综合对比 <a href="https://tokenplan.vip/" target="_blank" rel="friend noopener noreferrer" className="font-bold text-[#c05f3c] transition hover:text-[#d97757]">tokenplan.vip</a>，以及 <a href="https://dsh-plugin.org/" target="_blank" rel="friend noopener noreferrer" className="font-bold text-[#c05f3c] transition hover:text-[#d97757]">dsh-plugin.org</a>、<a href="https://newhot.org/" target="_blank" rel="friend noopener noreferrer" className="font-bold text-[#c05f3c] transition hover:text-[#d97757]">newhot.org</a> 赞助提供。
           </p>
         </section>
       </div>

@@ -30,7 +30,7 @@
 
 ## 资源支持
 
-本项目开发资源及 AI Token 消耗由全球 AI Token 综合对比 <https://tokenplan.vip>（tokenplan.vip）赞助提供。
+本项目开发资源及 AI Token 消耗由全球 AI Token 综合对比 <https://tokenplan.vip>（tokenplan.vip）、<https://dsh-plugin.org/>（dsh-plugin.org）、<https://newhot.org/>（newhot.org）赞助提供。
 
 ## 项目截图
 
